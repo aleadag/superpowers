@@ -1,0 +1,37 @@
+// markdownlint-cli2 configuration
+// Note: markdownlint-cli2 does not read ignore files; ignores go here.
+// Inherit rule config from .markdownlint.json so editor plugins
+// (which read .markdownlint.json) and CI (which reads
+// .markdownlint-cli2.jsonc) stay in sync. This file only adds
+// the cli2-specific ignores list.
+{
+  "extends": ".markdownlint.json",
+  "ignores": [
+    // Upstream-derived skill content — not in scope for this repo's lint
+    "skills/**",
+    // Relocated maintainer-only skill (ADR-0044) — same skill-content lint exemption as skills/**
+    ".claude/skills/auditing-upstream-drift/**",
+    // Reference docs imported from upstream
+    "docs/upstream-reference/**",
+    // Test fixtures and test infrastructure
+    "tests/**",
+    // Local working files
+    ".sessions/**",
+    // Community files (upstream-derived, Contributor Covenant)
+    "CODE_OF_CONDUCT.md",
+    // Beads tool internal files (upstream-derived)
+    ".beads/**",
+    // Internal design specs and implementation plans (dense code examples, not user-facing)
+    "docs/beads-superpowers/**",
+    // Known issues (gitignored, but markdownlint still scans on-disk files)
+    "docs/known-issues/**",
+    // Gitignored working docs
+    ".internal/**",
+    ".tmp/**",
+    "decisions/**",
+    // Dependencies (if added in future)
+    "node_modules/**",
+    // Symlink alias of the already-linted CLAUDE.md — don't double-lint (ADR-0063)
+    "AGENTS.md"
+  ]
+}

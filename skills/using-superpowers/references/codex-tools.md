@@ -7,7 +7,7 @@ Add to your Codex config (`~/.codex/config.toml`):
 multi_agent = true
 ```
 
-This enables `spawn_agent`, `wait_agent`, and `close_agent` for skills like `dispatching-parallel-agents` and `subagent-driven-development`. When using subagent-driven-development, close reviewer subagents when their review returns. Keep each implementer subagent open until its task's review passes — the fix loop resumes the implementer — then close it. If your harness cannot send another message to a spawned agent, dispatch each fix round as a fresh implementer carrying the brief, the report file, and the findings.
+This enables `spawn_agent`, `wait_agent`, and `close_agent` for skills like `dispatching-parallel-agents` and `subagent-driven-development`. When using subagent-driven-development, you should always close implementer and reviewer subagents when they have finished all their work.
 
 ## Environment Detection
 
@@ -37,3 +37,11 @@ the user to use the App's native controls:
 
 The agent can still run tests, stage files, and output suggested branch
 names, commit messages, and PR descriptions for the user to copy.
+
+## Beads
+
+| Action | Codex equivalent |
+|---|---|
+| `bd` CLI (task tracking via beads) | Use native shell tools with `bd` commands |
+
+- Structured questions: `request_user_input` is **plan-mode-gated** by default — outside Plan mode the call errors. Fall back to numbered plain-text options + STOP (config escape: `default_mode_request_user_input`).

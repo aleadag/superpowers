@@ -66,6 +66,8 @@ You MUST complete each phase before proceeding to the next.
    - Git diff, recent commits
    - New dependencies, config changes
    - Environmental differences
+   - For workflow-level issues (blocked beads, stuck execution): `bd ready --explain` shows dependency reasoning
+   - Check the knowledge store for this symptom before investigating further: `bd memories <symptom-keywords>` (prior root-cause/lesson memories) and `bd list --label <topic> --status all` (+ `bd search "<symptom>" --status all` for decision/design knowledge-beads; error strings are body terms: add `--desc-contains "<error-string>"`; >10 hits: narrow the query, never triage truncated titles). Then read — hits are pointers, not knowledge: `bd show <ids>` every plausibly-matching prior decision/design, and `bd recall <key>` every plausibly-matching memory (`bd memories` prints truncated previews) — full bodies, before investigating further. 0 relevant does not mean none exist — re-angle the query once before emitting `KB check: none`. Emit `KB check: N hits, M read` + a one-line disposition each. If a prior root cause or decision already covers this, use it — don't re-debug something already understood.
 
 4. **Gather Evidence in Multi-Component Systems**
 
@@ -174,7 +176,7 @@ You MUST complete each phase before proceeding to the next.
    - Automated test if possible
    - One-off test script if no framework
    - MUST have before fixing
-   - Use the `superpowers:test-driven-development` skill for writing proper failing tests
+   - Use the `beads-superpowers:test-driven-development` skill for writing proper failing tests
 
 2. **Implement Single Fix**
    - Address the root cause identified
@@ -186,7 +188,7 @@ You MUST complete each phase before proceeding to the next.
    - Test passes now?
    - No other tests broken?
    - Issue actually resolved?
-   - Use the `superpowers:verification-before-completion` skill before claiming success
+   - Before claiming the fix works, run the `beads-superpowers:verification-before-completion` skill — evidence before claims.
 
 4. **If Fix Doesn't Work**
    - STOP
@@ -210,6 +212,26 @@ You MUST complete each phase before proceeding to the next.
    **Discuss with your human partner before attempting more fixes**
 
    This is NOT a failed hypothesis - this is a wrong architecture.
+
+After the work is settled, present the Capture gate — mandatory every time; Skip is the default (most work leaves nothing worth keeping):
+
+```json
+{
+  "questions": [{
+    "question": "Worth keeping anything from this?",
+    "header": "Capture",
+    "options": [
+      {"label": "Skip", "description": "Nothing here outlasts the work itself (usually the case)"},
+      {"label": "Record the decision", "description": "Pick this if the choice is hard to undo, non-obvious in hindsight, and had real trade-offs — so future-you knows why"},
+      {"label": "Remember the lesson", "description": "A specific, evidence-backed lesson worth reusing in later sessions"},
+      {"label": "Both", "description": "A lasting decision and a lesson worth reusing"}
+    ],
+    "multiSelect": false
+  }]
+}
+```
+
+Route on the answer. **Record the decision / Both** → this writes an ADR, so first confirm it clears the bar (hard-to-reverse AND surprising-without-context AND genuine trade-off); if it doesn't, say so and capture it as a memory instead (the lighter record) — unless the user confirms they want the full ADR. Write the ADR (`docs/decisions/ADR-NNNN-<kebab>.md`, sections Context/Decision/Rationale/Consequences, update `docs/decisions/INDEX.md`), then file a `type=decision` knowledge-bead so the decision stays retrievable: `printf '%s' "<distilled 0.5-2.5KB decision summary — context, decision, consequences>" | bd create "<one-line summary>" -t decision -l kb,adr-process,<topic> --defer 2099-01-01 --metadata "$(jq -nc --arg d "<ADR-path>" '{doc:$d}')" --body-file - --silent` (run the secret/PII scan on the summary first — flag for removal, never write a secret into a bead). **Remember the lesson / Both** → `bd remember "<kind>: <durable, evidence-backed insight>"`. **Skip** → nothing.
 
 ## Red Flags - STOP and Follow Process
 
@@ -253,6 +275,7 @@ If you catch yourself thinking:
 | "Reference too long, I'll adapt the pattern" | Partial understanding guarantees bugs. Read it completely. |
 | "I see the problem, let me fix it" | Seeing symptoms ≠ understanding root cause. |
 | "One more fix attempt" (after 2+ failures) | 3+ failures = architectural problem. Question pattern, don't fix again. |
+| "Quick patch / retry-timeout wrapper is fine" | A fix that papers over the defect, weakens a security control, or accepts material risk is a symptom fix — forbidden (Production-Grade Doctrine). |
 
 ## Quick Reference
 
@@ -281,3 +304,13 @@ These techniques are part of systematic debugging and available in this director
 - **`root-cause-tracing.md`** - Trace bugs backward through call stack to find original trigger
 - **`defense-in-depth.md`** - Add validation at multiple layers after finding root cause
 - **`condition-based-waiting.md`** - Replace arbitrary timeouts with condition polling
+
+## Integration
+
+**Invoked by:** Any bug, test failure, or unexpected behaviour. Interrupt skill — fires regardless of workflow position.
+
+**Called by:** **subagent-driven-development** — on integration test failures after batch merge.
+
+**Pairs with:**
+- **test-driven-development** — Phase 4 creates a failing test to prove the root cause, then follows TDD to fix it.
+- **verification-before-completion** — verify the fix before claiming success.

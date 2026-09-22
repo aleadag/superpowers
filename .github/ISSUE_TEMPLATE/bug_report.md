@@ -1,55 +1,43 @@
 ---
-name: Bug Report
-about: Something isn't working as expected
-labels: bug
+name: Bug report
+about: Something in the plugin doesn't work as expected
+title: "[bug] "
+labels: ["bug", "needs-triage"]
 ---
 
-<!--
-BEFORE FILING: Search open AND closed issues. The Windows SessionStart
-hook alone has been reported 29 times. If your issue already exists,
-add a comment or reaction to the existing one instead.
--->
+## Describe the bug
 
-- [ ] I searched existing issues and this is not a duplicate
+A clear and concise description of what the bug is.
 
-## Environment (required)
-<!-- Required. We assume an agent filed this report — tell us which one and
-     where it ran. We weigh reports by what produced them. -->
+## Reproduction steps
 
-| Field | Value |
-|-------|-------|
-| Superpowers version | |
-| Harness (Claude Code, Cursor, etc.) | |
-| Harness version | |
-| Your model + version | |
-| All plugins installed | |
-| OS + shell | |
+1. Install the plugin (see the README for your CLI's install command)
+2. Run `bd ...`
+3. Observe `...`
 
-## Is this a Superpowers issue or a platform issue?
-<!-- Superpowers is a plugin. Some reported "bugs" are actually issues
-     in the underlying platform or model. If you're not sure, try
-     reproducing without Superpowers installed.
+## Expected behaviour
 
-     If the problem persists without Superpowers, file the issue with
-     your platform instead. -->
+What you expected to happen.
 
-- [ ] I confirmed this issue does not occur without Superpowers installed
+## Actual behaviour
 
-## What happened?
-<!-- Be specific. "It doesn't work" is not a bug report. -->
+What actually happened, including any error messages.
 
-## Steps to reproduce
-1.
-2.
-3.
+## Environment
 
-## Expected behavior
-<!-- What should have happened? -->
+- Which CLI / agent? (Claude Code / Codex / OpenCode / Cursor / Gemini CLI / GitHub Copilot CLI / Kimi Code / Antigravity / Factory Droid / Pi)
+- OS: (e.g. macOS 15.1, Ubuntu 24.04, Windows 11 + WSL2)
+- CLI version: (run your CLI's `--version`, e.g. `claude --version`)
+- Beads version: (run `bd --version`)
+- Plugin version: (from `.claude-plugin/plugin.json`)
+- Shell: (bash, zsh, fish, …)
 
-## Actual behavior
-<!-- What happened instead? -->
+## Logs / output
 
-## Debug log or conversation transcript
-<!-- A debug log or conversation transcript showing the issue is the
-     single most helpful thing you can include. Without one, we're
-     guessing. Screenshots of error output are also useful. -->
+```text
+Paste any relevant terminal output here.
+```
+
+## Additional context
+
+Anything else that might be relevant — config snippets, the skill being invoked, etc.

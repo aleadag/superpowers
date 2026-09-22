@@ -32,6 +32,7 @@ skipped=0
 
 # ========== Helpers ==========
 
+# shellcheck disable=SC2317  # cleanup() is invoked indirectly via 'trap cleanup EXIT'
 cleanup() {
   # Kill any server processes we started
   for pidvar in SERVER_PID CONTROL_PID STOP_TEST_PID; do

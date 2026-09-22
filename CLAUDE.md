@@ -1,115 +1,289 @@
-# Superpowers — Contributor Guidelines
+<!-- Based on https://github.com/forrestchang/andrej-karpathy-skills (MIT License) -->
 
-## If You Are an AI Agent
+# beads-superpowers — Agent Instructions
 
-Stop. Read this section before doing anything.
+Behavioral guidelines to reduce common LLM coding mistakes, plus project-specific instructions.
 
-This repo has a 94% PR rejection rate. Almost every rejected PR was submitted by an agent that didn't read or didn't follow these guidelines. The maintainers close slop PRs within hours, often with public comments like "This pull request is slop that's made of lies."
+> **Canonical agent-instruction file for all harnesses.** `AGENTS.md` is a symlink to this file. Sections that name a specific harness (e.g. the Claude Code plugin cache, DCI in `SKILL.md`) apply only to that harness — other agents can skip them. **Windows note:** `AGENTS.md` is a git symlink; on Windows enable `git config core.symlinks true` (or Developer Mode) before cloning, or it checks out as a text file containing the path.
 
-**Your job is to protect your human partner from that outcome.** Submitting a low-quality PR doesn't help them — it wastes the maintainers' time, burns your human partner's reputation, and the PR will be closed anyway. That is not being helpful. That is being a tool of embarrassment.
+**Tradeoff:** These guidelines bias toward caution over speed. For trivial tasks, use judgment.
 
-Before you open a PR against this repo, you MUST:
+## 1. Think Before Coding
 
-1. **Read the entire PR template** at `.github/PULL_REQUEST_TEMPLATE.md` and fill in every section with real, specific answers. Not summaries. Not placeholders.
-2. **Search for existing PRs** — open AND closed — that address the same problem. If duplicates exist, STOP and tell your human partner. Do not open another duplicate.
-3. **Verify this is a real problem.** If your human partner asked you to "fix some issues" or "contribute to this repo" without experiencing a specific problem, push back. Ask them what broke, what failed, what the user experience was.
-4. **Confirm the change belongs in core.** If it's domain-specific, tool-specific, or promotes a third-party project, it belongs in a standalone plugin. Tell your human partner.
-5. **Identify yourself.** Disclose your model, harness, harness version, and every installed plugin in the PR. Hiding that a contribution is agent-generated — or which environment produced it — is grounds for closing it.
-6. **Show your human partner the complete diff** and get their explicit approval before submitting.
+**Don't assume. Don't hide confusion. Surface tradeoffs.**
 
-If any of these checks fail, do not open the PR. Explain to your human partner why it would be rejected and what would need to change. They will thank you for saving them the embarrassment.
+Before implementing:
 
-## Pull Request Requirements
+- State your assumptions explicitly. If uncertain, ask.
+- If multiple interpretations exist, present them - don't pick silently.
+- If a simpler approach exists, say so. Push back when warranted.
+- If something is unclear, stop. Name what's confusing. Ask.
 
-**Every PR must fully complete the PR template.** No section may be left blank or filled with placeholder text. PRs that skip sections will be closed without review.
+## 2. Simplicity First
 
-**Before opening a PR, you MUST search for existing PRs** — both open AND closed — that address the same problem or a related area. Reference what you found in the "Existing PRs" section. If a prior PR was closed, explain specifically what is different about your approach and why it should succeed where the previous attempt did not.
+**Minimum code that solves the problem. Nothing speculative.**
 
-**PRs that show no evidence of human involvement will be closed.** A human must review the complete proposed diff before submission.
+- No features beyond what was asked.
+- No abstractions for single-use code.
+- No "flexibility" or "configurability" that wasn't requested.
+- No error handling for impossible scenarios.
+- If you write 200 lines and it could be 50, rewrite it.
 
-**Submitters MUST identify themselves.** Every PR and issue must disclose the model, harness, harness version, and all installed plugins used to produce the contribution — or state plainly that it was written by hand with no agent. This is not optional. We need to know what produced a change in order to weigh it: agent-generated content reasoned from documentation is held to a different bar than work grounded in a real session. Contributions that hide their authoring environment will be closed.
+Ask yourself: "Would a senior engineer say this is overcomplicated?" If yes, simplify.
 
-**All PRs MUST target the `dev` branch, not `main`.** `main` is the released branch; active work lands on `dev` first. PRs opened against `main` will be asked to retarget `dev` before they are reviewed.
+## 3. Surgical Changes
 
-## What We Will Not Accept
+**Touch only what you must. Clean up only your own mess.**
 
-### Third-party dependencies
+When editing existing code:
 
-PRs that add optional or required dependencies on third-party projects will not be accepted unless they are adding support for a new harness (e.g., a new IDE or CLI tool). Superpowers is a zero-dependency plugin by design. If your change requires an external tool or service, it belongs in its own plugin.
+- Don't "improve" adjacent code, comments, or formatting.
+- Don't refactor things that aren't broken.
+- Match existing style, even if you'd do it differently.
+- If you notice unrelated dead code, mention it - don't delete it.
 
-### "Compliance" changes to skills
+When your changes create orphans:
 
-Our internal skill philosophy differs from Anthropic's published guidance on writing skills. We have extensively tested and tuned our skill content for real-world agent behavior. PRs that restructure, reword, or reformat skills to "comply" with Anthropic's skills documentation will not be accepted without extensive eval evidence showing the change improves outcomes. The bar for modifying behavior-shaping content is very high.
+- Remove imports/variables/functions that YOUR changes made unused.
+- Don't remove pre-existing dead code unless asked.
 
-### Project-specific or personal configuration
+The test: Every changed line should trace directly to the user's request.
 
-Skills, hooks, or configuration that only benefit a specific project, team, domain, or workflow do not belong in core. Publish these as a separate plugin.
+## 4. Goal-Driven Execution
 
-### Bulk or spray-and-pray PRs
+**Define success criteria. Loop until verified.**
 
-Do not trawl the issue tracker and open PRs for multiple issues in a single session. Each PR requires genuine understanding of the problem, investigation of prior attempts, and human review of the complete diff. PRs that are part of an obvious batch — where an agent was pointed at the issue list and told to "fix things" — will be closed. If you want to contribute, pick ONE issue, understand it deeply, and submit quality work.
+Transform tasks into verifiable goals:
 
-### Speculative or theoretical fixes
+- "Add validation" → "Write tests for invalid inputs, then make them pass"
+- "Fix the bug" → "Write a test that reproduces it, then make it pass"
+- "Refactor X" → "Ensure tests pass before and after"
 
-Every PR must solve a real problem that someone actually experienced. "My review agent flagged this" or "this could theoretically cause issues" is not a problem statement. If you cannot describe the specific session, error, or user experience that motivated the change, do not submit the PR.
+For multi-step tasks, state a brief plan:
 
-### Domain-specific skills
+```text
+1. [Step] → verify: [check]
+2. [Step] → verify: [check]
+3. [Step] → verify: [check]
+```
 
-Superpowers core contains general-purpose skills that benefit all users regardless of their project. Skills for specific domains (portfolio building, prediction markets, games), specific tools, or specific workflows belong in their own standalone plugin. Ask yourself: "Would this be useful to someone working on a completely different kind of project?" If not, publish it separately.
+Strong success criteria let you loop independently. Weak criteria ("make it work") require constant clarification.
 
-### Fork-specific changes
+---
 
-If you maintain a fork with customizations, do not open PRs to sync your fork or push fork-specific changes upstream. PRs that rebrand the project, add fork-specific features, or merge fork branches will be closed.
+**These guidelines are working if:** fewer unnecessary changes in diffs, fewer rewrites due to overcomplication, and clarifying questions come before implementation rather than after mistakes.
 
-### Fabricated content
+---
 
-PRs containing invented claims, fabricated problem descriptions, or hallucinated functionality will be closed immediately. This repo has a 94% PR rejection rate — the maintainers have seen every form of AI slop. They will notice.
+## Project Overview
 
-### Bundled unrelated changes
+A plugin for Claude Code, Codex, and OpenCode (verified) plus 7 best-effort harnesses — Cursor, Gemini CLI, GitHub Copilot CLI, Kimi Code, Antigravity, Factory Droid, and Pi — that merges [Superpowers](https://github.com/obra/superpowers) skills (v6.2.0) with [Beads](https://github.com/gastownhall/beads) issue tracking (v1.1.2). It gives AI coding agents composable process-discipline skills (TDD, brainstorming, systematic debugging, code review, verification) plus persistent task memory via a Dolt-backed database.
 
-PRs containing multiple unrelated changes will be closed. Split them into separate PRs.
+**Repository:** <https://github.com/DollarDill/beads-superpowers>
+**Version:** 0.16.0
+**License:** MIT (fork of obra/superpowers, also MIT)
 
-## New Harness Support
+## Architecture
 
-If your PR adds support for a new harness (IDE, CLI tool, agent runner), you MUST include a session transcript proving the integration works end-to-end.
+- `.claude-plugin/` — Claude Code plugin manifest (`plugin.json`) and marketplace config (`marketplace.json`). Auto-discovered by Claude Code.
+- `.codex-plugin/` — Codex CLI plugin manifest (`plugin.json`) and marketplace config (`marketplace.json`). Mirrors `.claude-plugin/` for Codex compatibility. The repo-root `.agents/plugins/marketplace.json` (version-less) is the Codex marketplace source manifest — without it, Codex marketplace sources find zero installable plugins.
+- `skills/` — one skill per `skills/<name>/SKILL.md` directory. Some include prompt templates (`implementer-prompt.md`, `researcher-prompt.md`) or helper scripts. Auto-discovered by Claude Code — do NOT declare in `plugin.json`.
+- `agents/` — Removed in v0.6.0. Code-reviewer is now dispatched via `skills/requesting-code-review/code-reviewer.md` prompt template. Subagents (implementer, researcher) use prompt templates inside their skills, not standalone agent files.
+- `hooks/` — `session-start` (SessionStart: injects `using-superpowers` + composed beads context — curated memories + a `bd prime` pointer), the single recurring hook. Multi-format output supports Claude Code, Codex, Cursor, and generic CLIs. Registered in `hooks/hooks.json` (Claude Code) and `hooks/codex-hooks.json` (Codex). Auto-discovered.
+- `.opencode/` — OpenCode plugin (`plugins/beads-superpowers.js`, upstream-parity base + beads graft) + `INSTALL.md`. Git-install only via the opencode.json plugin spec; `install.sh` no longer copies OpenCode artifacts (its `--uninstall` still cleans pre-0.12 copies).
+- `example-workflow/` — Ready-to-use project template: `agents/yegge.md` (lean router — triages requests and routes to skills). `install.sh --with-yegge` installs `yegge.md` globally (opt-in; not installed by default).
+- `docs/` — Docs content only, i18n folder layout: `docs/en/` (English pages) + `docs/zh/` (Chinese mirrors, 1:1 structural parity guard-enforced) + shared `docs/assets/`. Source of truth for the site's prose. The site itself is built and published from the private the-factory-website repo (`tenants/beads-superpowers/`), not from this repo (ADR-0050).
+- `docs/decisions/` — Architecture Decision Records (ADRs). Local working docs (gitignored).
+- `.internal/` — Working docs (gitignored): specs from brainstorming, plans from writing-plans, research output, audits, reference docs, `.internal/sdd/` (SDD scratch), and `.internal/brainstorm/` (brainstorm server sessions).
+- `tests/` — deterministic suites (hooks, manifests, skills contracts, install-shape, installer docker/podman E2E, brainstorm-server Node tests) run via the `just` surface. (The 4 LLM-driven suites were removed in the 2026-07 fat audit — successor: the external eval-harness project.)
+- `scripts/` — `bump-version.sh` (sync version across all surfaces declared in `.version-bump.json` — JSON manifests + prose), `check-skill-count.sh` (guard: forbid hardcoded skill counts + structural self-consistency), `check-agent-bead-stamp.sh`, `check-zh-docs.sh`, `check-convention-sync.sh` (verify shared convention blocks are byte-identical across skills), `lint-shell.sh` (shellcheck gate over tracked `.sh` with committed baseline; visible SKIP when shellcheck absent), `check-askuser-genericization.sh` (guard: skills use generic question-tool phrasing — ADR-0041), `check-model-genericization.sh` (guard: no hardcoded Claude model names in harness-neutral content — capability tiers only), `check-guardrail-floor.sh` (guard: ADR-0049's "never remove to zero" made mechanical — counts guardrail lines per skill against the committed `guardrail-floor-baseline.txt` and fails on a drop to zero or an unjustified decrease; a recorded `0` is a legitimate, disclosed zero for capability skills with no bright lines).
+- `install.sh` — curl installer with 3-tier fallback chain (plugin system → npx → tarball/git clone). SHA-256 checksum validation, atomic rollback via staging directory, lazy prerequisites. Auto-detects Claude Code, Codex, OpenCode, and 7 more CLIs (Cursor, Copilot, Droid, Antigravity, Kimi, Pi, Gemini).
 
-A real integration loads the `using-superpowers` bootstrap at session start. The bootstrap is what causes skills to auto-trigger at the right moments. Without it, the skills are dead weight — present on disk but never invoked.
+## Key Design Decisions
 
-**The acceptance test.** Open a clean session in the new harness and send exactly this user message:
+- **Skills are pure Markdown** — No executable code in skills. Claude Code auto-discovers `skills/*/SKILL.md`. Platform-agnostic by design. (See: upstream superpowers architecture)
+- **Prompt templates over standalone agent files** — Subagent prompts (`implementer-prompt.md`, `researcher-prompt.md`) live inside their skills. Only the orchestrator (`yegge.md`) is a standalone agent file. Prevents drift between skill and dispatch instructions. (See: ADR-0003)
+- **`bd` replaces TodoWrite everywhere** — Every `TodoWrite` reference in upstream superpowers replaced with `bd` commands. Beads provides persistent cross-session memory that TodoWrite lacks.
+- **Three-layer architecture for example workflow** — `CLAUDE.md` (behavioral principles + project context) + `agents/yegge.md` (orchestration — triage + skill routing) + prompt templates (subagent dispatch). Each layer has a distinct responsibility. (See: ADR-0003, ADR-0032)
+- **`yegge.md` is opt-in and never load-bearing** — it installs only via `install.sh --with-yegge` (Claude Code only, absent from a default install). It MUST NOT be counted when reasoning about, auditing, or claiming whole-product behaviour, and MUST NOT be cited as evidence that the product enforces something. Any behaviour that matters has to hold on a default install — the session-start hook plus `skills/` — where `yegge.md` may reinforce a rule but never supply it. **If a rule exists only in `yegge.md`, the product does not have that rule.** Same test for any other opt-in surface.
+- **MkDocs Material for docs site** — HashiCorp/Terraform-style sidebar, dark theme, Mermaid diagrams. Template variables via macros plugin avoid hardcoded counts; the config and macros now live in the-factory-website repo, not here. (See: ADR-0001, ADR-0050)
+- **Per-task worktree isolation for parallel SDD** — Independent plan tasks execute in parallel (max 5), each in its own `bd worktree`. Prevents merge conflicts between concurrent subagents. (See: ADR-0002)
+- **Dev-branch integration model** — All work lands on `dev`; `main` is released-only and advances exclusively via `git merge --ff-only dev` at release cut (hotfixes ride dev as patch releases — drift is self-detecting). `main` carries force-push/deletion protection (`gh-pages` did too until its 2026-07-22 retirement). (See: ADR-0060)
 
-> Let's make a react todo list
+## Common Gotchas
 
-A working integration auto-triggers the `brainstorming` skill before any code is written. Paste the complete transcript in the PR.
+- **Embedded Dolt mode** — `.beads/metadata.json` `dolt_mode: embedded` runs the Dolt engine **in-process** (no separate sql-server). This does NOT disable sync: `bd dolt status/show/push/pull` all work. The remote is the dedicated private repo `DollarDill/beads-superpowers-beads` (slug only — content is auth-gated), decoupled from this public code repo (ADR-0057); the code repo itself carries **zero** dolt refs — any reappearing is a regression (`bash skills/project-init/scripts/diagnose.sh` flags it). New-machine bootstrap: clone this repo, then `bd init --non-interactive --prefix beads-superpowers --remote "git+ssh://git@github.com/DollarDill/beads-superpowers-beads.git"` — hydrates the full DB from the private remote. Genuine push failures are setup-specific (diverged history, GitHub push-protection if a token is in Dolt history) — see the `project-init` skill, not a blanket "embedded fails".
+- **Zero-remote `bd dolt push` silently adopts git origin (bd v1.1.0)** — with NO Dolt remote configured, `bd dolt push` does not error; it silently pushes the beads DB to the git origin instead (a real, reproduced ADR-0057 incident). Always chain remote swaps in one command — `bd dolt remote remove origin && bd dolt remote add origin <url>` — never leave the remote empty between the two.
+- **Remote swaps: collision guard + stale `sync.remote`** — a git-origin collision guard makes `bd dolt remote add` refuse a URL matching git origin unless `--allow-git-origin` is passed (upstream PR #4153, merged 2026-07-04, hours after the v1.1.0 tag). **No released bd carries it yet** — verified 2026-07-27 against v1.1.2: v1.1.1 never shipped (tag cut, release pipeline failed on a stale MCP lockfile, version burned) and v1.1.2 was a hotfix cut from the v1.1.0 tag rather than from main. Expect the guard whenever you upgrade past v1.1.2; for a deliberate same-repo setup, pass the flag rather than fighting it. Separately, `bd dolt remote remove` can leave `sync.remote` stale or commented out in `.beads/config.yaml` — verify it after any swap and repair with `bd config set sync.remote <url>` if it's wrong.
+- **Reference-class knowledge lives in beads, not `bd memories`** — the `memory-curator` taxonomy makes `@type` the routing decision: `research`/`design`/`decision` notes (pointers to docs/ADRs) become **deferred knowledge-beads** (`status=deferred`, far-future `defer_until`, GC-safe, hidden from `bd ready`) tagged with the `kb` label + 1–3 topic labels, while `lesson`/`pattern`/`root-cause`/`correction` stay injected memories. Retrieve by topic with `bd list --label <topic> --status all` or by keyword with `bd search "<keyword>" --status all` (titles only — body terms need `--desc-contains "<term>"`); read hit bodies with multi-id `bd show` or `bd list … --flat --long -n 10` before relying on them; retire stale entries with `bd supersede <old> --with <new>`. `bd memories <keyword>` only covers injected memories.
+- **`export.git-add` pollutes branches (v1.0.2 and earlier)** — In beads v1.0.2 and earlier, `export.git-add` defaulted to `true`, auto-staging `issues.jsonl` on every commit. Workaround: `bd config set export.git-add false` before branch work. In **v1.0.4+**, auto-export is opt-in by default — no workaround needed. Check with `bd config show`.
+- **DCI only works in SKILL.md** — The `!` backtick syntax (Dynamic Context Injection) only works in `SKILL.md` and `.claude/commands/*.md`. NOT in agent `.md` files, `CLAUDE.md`, or rules files.
+- **Never run `npx skills add` from inside this repo** — It replaces real skill files in `skills/` with symlinks to `.agents/skills/`, destroying the source. Use `-g` flag from `/tmp` or another directory.
+- **Never chain `open` after `bd` commands** — `open <file>` hangs when chained in the same Bash invocation with `bd` commands. Always run `open` as a standalone call.
+- **Worktree path default** — `bd worktree create <name>` creates at `./<name>` (sibling to repo files), NOT `.worktrees/<name>`. Pass the full path: `bd worktree create .worktrees/<name>`.
+- **Worktree detection** — Use `git rev-parse --is-inside-work-tree`, NOT `[ -d .git ]`. In a worktree, `.git` is a file, not a directory.
+- **Plugin cache goes stale** — After modifying skills, the installed plugin cache is outdated. Symlink the cache to this repo. `claude plugin update` has a [cache bug](https://github.com/anthropics/claude-code/issues/14061).
+- **Skill `description` field trap** — Putting workflow descriptions in skill `description` frontmatter causes Claude to follow the description instead of reading the full skill body (SDO problem). Descriptions should state trigger conditions only.
+- **Codex plugin channel doesn't register hooks** — codex-cli (verified 0.142.5) rejects a populated `hooks` object in the plugin manifest ("ignoring hooks: … found object") and auto-discovers nothing usable, so plugin/marketplace installs get skills but NO SessionStart hook. `install.sh` wires the hook explicitly — it is the supported Codex hook path.
+- **`gh-pages` is retired — do not recreate it (ADR-0050, 2nd amendment)** — the SEO redirect bridge was sunset early on 2026-07-22 (maintainer call: algocents.com had begun ranking for the target terms). GitHub Pages is unpublished, the branch and its protection are deleted, and `scripts/verify-ghpages-stubs.sh` is gone. The full pre-deletion history — stub tree plus the original MkDocs site at `2c2ebc5` — is preserved on the tag `archive/gh-pages-final`. `https://dollardill.github.io/beads-superpowers/*` now 404s permanently; the live site is algocents.com.
 
-**These are not real integrations and will be closed:**
+## Non-Interactive Shell Commands
 
-- Manually copying skill files into the harness
-- Wrapping with `npx skills` or similar at-runtime shims
-- Anything that requires the user to opt in to skills per-session
-- Anything where `brainstorming` does not auto-trigger on the acceptance test above
+**ALWAYS use non-interactive flags** with file operations to avoid hanging:
 
-If you are not sure whether your integration loads the bootstrap at session start, it does not.
+```bash
+cp -f source dest           # NOT: cp source dest
+mv -f source dest           # NOT: mv source dest
+rm -f file                  # NOT: rm file
+rm -rf directory            # NOT: rm -r directory
+cp -rf source dest          # NOT: cp -r source dest
+```
 
-## Skill Changes Require Evaluation
+> **Note:** Claude Code auto-discovers `skills/`, `agents/`, and `hooks/` by convention — do NOT declare these paths in `plugin.json` (it causes validation failures). The directory layout is documented in the **Architecture** section above.
 
-Skills are not prose — they are code that shapes agent behavior. If you modify skill content:
+## Beads Integration
 
-- Use `superpowers:writing-skills` to develop and test changes
-- Run adversarial pressure testing across multiple sessions
-- Show before/after eval results in your PR
-- Do not modify carefully-tuned content (Red Flags tables, rationalization lists, "human partner" language) without evidence the change is an improvement
+This plugin uses `bd` (beads) for ALL task tracking.
 
-## Eval harness
+### Commands
 
-Skill-behavior evals live in [superpowers-evals](https://github.com/prime-radiant-inc/superpowers-evals/), cloned into `evals/` — see `evals/README.md` for setup. Drill (the harness) drives real tmux sessions of Claude Code / Codex / Gemini CLI and judges skill compliance with an LLM verifier. Plugin-infrastructure tests still live at `tests/`.
+`bd human` is the SSOT for bd commands and flags (read `bd <cmd> --help` on first use). Command tables are not restated here.
 
-## Understand the Project Before Contributing
+### Rules
 
-Before proposing changes to skill design, workflow philosophy, or architecture, read existing skills and understand the project's design decisions. Superpowers has its own tested philosophy about skill design, agent behavior shaping, and terminology (e.g., "your human partner" is deliberate, not interchangeable with "the user"). Changes that rewrite the project's voice or restructure its approach without understanding why it exists will be rejected.
+- Use `bd` for ALL task tracking — never TodoWrite, TaskCreate, or markdown TODOs
+- Never guess bd syntax — on first use of a command or flag this session, read `bd <cmd> --help` (the binary is SSOT)
+- Only the orchestrating agent manages beads — subagents do NOT touch beads
+- Include bead IDs in commit messages: `git commit -m "Add feature (bd-a1b2)"`
+- Every session ends with Land the Plane: `bd close` → `bd dolt push` → `git push` (work lands on `dev`; `main` only advances at release cut)
+- Beads *policy* is embedded where it's read — using-superpowers' Beads section plus inline own-operation kernels (no dedicated policy skill); bd *commands* defer to `bd human` — don't restate command tables in skills
 
-## General
+## Skills
 
-- Read `.github/PULL_REQUEST_TEMPLATE.md` before submitting
-- One problem per PR
-- Test on at least one harness and report results in the environment table
-- Describe the problem you solved, not just what you changed
+| Skill                          | Purpose                                                                                                                     |
+| ------------------------------ | --------------------------------------------------------------------------------------------------------------------------- |
+| using-superpowers              | Bootstrap — loaded at session start, routes to other skills                                                                 |
+| brainstorming                  | Socratic design before code — creates session beads                                                                         |
+| stress-test                    | Adversarial design interrogation with recommended answers                                                                   |
+| writing-plans                  | Bite-sized task plans — each task becomes a bead                                                                            |
+| subagent-driven-development    | Fresh agent per task + single task review (spec + quality verdicts); parallel batch mode for independent tasks              |
+| executing-plans                | Batch execution in single session                                                                                           |
+| test-driven-development        | RED-GREEN-REFACTOR — Iron Law: no code without failing test                                                                 |
+| systematic-debugging           | 4-phase root cause analysis before proposing fixes                                                                          |
+| verification-before-completion | Evidence before claims — bd close requires evidence                                                                         |
+| requesting-code-review         | Dispatches code reviewer subagent                                                                                           |
+| receiving-code-review          | Anti-sycophancy review reception                                                                                            |
+| using-git-worktrees            | Isolated development branches                                                                                               |
+| finishing-a-development-branch | Merge/PR + Land the Plane (Step 6)                                                                                          |
+| document-release               | Post-ship documentation audit and sync                                                                                      |
+| project-init                   | Beads/Dolt DB setup, bootstrap, and recovery                                                                                |
+| dispatching-parallel-agents    | 2+ independent tasks without shared state                                                                                   |
+| auditing-upstream-drift (maintainer-only — `.claude/skills/`, not distributed) | Detect staleness vs upstream superpowers/beads                             |
+| getting-up-to-speed            | Session orientation — reads latest session-handoff doc + bd context + adaptive codebase deep-dive + structured current-state summary |
+| research-driven-development    | Parallel research agents → blinded citation-grounding verify → synthesized knowledge base document. Triggers on "research this", "what is X", "how does Y work" |
+| write-documentation            | Human-quality prose for all human-facing text — 14-rule writing system with context-first drafting and required checks      |
+| memory-curator                 | Session-close/on-demand memory consolidation — quality-gated extract, dedup, consolidate, prune (evidence-led)              |
+| session-handoff                | **Human-invoked only** — grounded session-handoff doc + continuation memory (not agent-routed)            |
+
+## Modifying Skills
+
+### Modifying an Existing Skill
+
+1. **Compress to strongest rows, positive-framed (ADR-0049):** All skills follow this pattern. Collapse redundant *corrections*, but retain every distinct rationalization *phrase* verbatim — the model pattern-matches on specific phrasing. Never reduce a skill's guardrail content (anti-rationalization tables, Iron Laws, Red Flags sections) to zero; mechanically enforced by `bash scripts/check-guardrail-floor.sh`
+2. **Do NOT add** TodoWrite references — use `bd` commands
+3. Verify after changes: run `bash scripts/check-todowrite.sh` — must report "No active TodoWrite references"
+
+### Key Anti-Patterns
+
+- Putting workflow descriptions in skill `description` fields (causes Claude to follow description instead of reading full skill — the skill-discovery finding in docs/en/research.md; mechanism note in docs/en/methodology.md)
+- Softening bright-line rules ("consider" instead of "MUST")
+- Adding platform-specific code to skills (skills are pure Markdown)
+
+## Build & Test
+
+Skills are plain Markdown. Docs content lives in `docs/`; the site is built and published by the-factory-website (ADR-0050).
+
+### Validation — the `just` surface (tool, not gate)
+
+Run `just check` after touching harness plumbing (hooks/, install.sh, manifests, .opencode/).
+Pre-commit covers commit-time hygiene; nothing here is CI-enforced by design.
+
+```bash
+just            # = just check: guards + hooks + manifests + contracts + shape
+just guards     # all guard scripts (todowrite, bead-stamp, zh-docs, convention-sync,
+                #   skill-count + KNOWN_SKILLS drift, version sync, frontmatter, shell lint,
+                #   askuser-genericization, model-genericization, guardrail floor)
+just lint       # shellcheck gate alone (tracked .sh, baseline'd; SKIPs if shellcheck absent)
+just hooks      # tests/hooks/* (node tests SKIP visibly if node absent)
+just shape      # install-shape: 10 harnesses (Tier A full artifacts; Tier B hint+manifest)
+just shape codex  # one harness
+just selftest   # guard-the-guards: mutations that must fail
+just server     # brainstorm-server Node tests (opt-in)
+just docker     # installer E2E under docker or podman (opt-in, slow)
+```
+
+docs preview: from the-factory-website repo (tenants/beads-superpowers)
+
+```bash
+# Verify beads integration (should be 30+)
+grep -r "bd create\|bd close\|bd ready" skills/ | wc -l
+```
+
+For a quick, no-Docker installer smoke test outside the `just` surface: `bash install.sh --test`
+(installs to `/tmp`, verifies, cleans up).
+
+Skill *behavior* testing lives in the external eval-harness project (the in-repo LLM suites
+were removed in the 2026-07 fat audit).
+
+**Release process (no GHA):** run the `document-release` docs audit **on dev** (release cuts bypass the finishing-branch Step 3.5 docs gate) → `./scripts/bump-version.sh <ver>` + update CHANGELOG, committed **on dev** →
+`git switch main && git merge --ff-only dev` (fails loudly if anything ever landed on main directly — that's the invariant working) → tag `v<ver>` on main → `git push --tags` → **publish the GitHub Release**:
+`gh release create v<ver> --title "v<ver>" --latest --notes-file <changelog-section> checksums.txt` → `git switch dev`.
+Publishing the GitHub Release is NOT optional — `install.sh` resolves its default version from `releases/latest`,
+so a pushed tag without a published Release leaves installers on the previous version. Attach
+`checksums.txt` (`sha256sum` of the tag tarball `archive/refs/tags/v<ver>.tar.gz`) or
+`verify_checksum` silently skips. Docs deploy is no longer part of this repo's release process — the site publishes from the private the-factory-website repo (ADR-0050).
+
+Fixes on dev reach installers only at release — cut patch releases promptly. main receives nothing except ff-only merges from dev; hotfixes ride dev as patch releases.
+
+## Version Management
+
+Version surfaces are declared in `.version-bump.json` and must stay in sync:
+
+- `package.json`
+- `.claude-plugin/plugin.json`
+- `.claude-plugin/marketplace.json`
+- `.codex-plugin/plugin.json`
+- `.codex-plugin/marketplace.json`
+- `.cursor-plugin/plugin.json`
+- `.kimi-plugin/plugin.json`
+- `CLAUDE.md` (`**Version:**` line — prose entry)
+
+README version badges are dynamic (shields.io release badge) — no hand-sync needed.
+
+Use `scripts/bump-version.sh` to update all at once:
+
+```bash
+./scripts/bump-version.sh 0.5.3        # Bump to new version
+./scripts/bump-version.sh --check      # Detect version drift
+```
+
+## Example Workflow
+
+The `example-workflow/` directory provides a ready-to-use development workflow:
+
+| File              | Purpose                                                                                                                                                                              |
+| ----------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `agents/yegge.md` | Orchestrator agent — lean router: triage table, full-flow routing, always-true rules, session protocol. Named after Steve Yegge (beads creator). Optional add-on — installed globally only via `install.sh --with-yegge`. |
+
+## Upstream Sources
+
+| Source                                                    | Version           | What We Track                               |
+| --------------------------------------------------------- | ----------------- | ------------------------------------------- |
+| [obra/superpowers](https://github.com/obra/superpowers)   | v6.2.0 (baseline) | Skill content, new skills, hook changes     |
+| [gastownhall/beads](https://github.com/gastownhall/beads) | v1.1.2 (baseline) | CLI commands, new features, bd prime format |
+| [garrytan/gstack](https://github.com/garrytan/gstack) `document-release` | snapshot 2026-07-17 | document-release skill lineage |
+| [mattpocock/skills](https://github.com/mattpocock/skills) `productivity/grilling` | snapshot 2026-07-17 | stress-test skill lineage |
+| [mattpocock/skills](https://github.com/mattpocock/skills) `productivity/handoff` | snapshot 2026-07-17 | session-handoff skill lineage |
+| [Anbeeld/WRITING.md](https://github.com/Anbeeld/WRITING.md) | v1.3.1 (verified current 2026-06-26) | write-documentation writing system |
+
+Use the `auditing-upstream-drift` skill (maintainer-only — `.claude/skills/auditing-upstream-drift/SKILL.md`, not distributed) to check for staleness.

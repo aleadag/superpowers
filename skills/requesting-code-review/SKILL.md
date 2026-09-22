@@ -55,11 +55,12 @@ You: Let me request code review before proceeding.
 BASE_SHA=$(git log --oneline | grep "Task 1" | head -1 | awk '{print $1}')
 HEAD_SHA=$(git rev-parse HEAD)
 
-[Dispatch code reviewer subagent]
-  DESCRIPTION: Added verifyIndex() and repairIndex() with 4 issue types
-  PLAN_OR_REQUIREMENTS: Task 2 from docs/superpowers/plans/deployment-plan.md
+[Dispatch code reviewer subagent via code-reviewer.md template]
+  WHAT_WAS_IMPLEMENTED: Verification and repair functions for conversation index
+  PLAN_OR_REQUIREMENTS: Task 2 from .internal/plans/deployment-plan.md
   BASE_SHA: a7981ec
   HEAD_SHA: 3df7661
+  DESCRIPTION: Added verifyIndex() and repairIndex() with 4 issue types
 
 [Subagent returns]:
   Strengths: Clean architecture, real tests
@@ -70,6 +71,23 @@ HEAD_SHA=$(git rev-parse HEAD)
 
 You: [Fix progress indicators]
 [Continue to Task 3]
+```
+
+## Integration
+
+**Used by:**
+- **subagent-driven-development** — review after EACH task; catch issues before they compound; fix before moving to next task
+- **executing-plans** — review after each task or at natural checkpoints
+- **Ad-hoc review** — before merge or when stuck
+
+**Pairs with:**
+- **receiving-code-review** — request/response pair; this skill dispatches the reviewer, receiving-code-review handles the feedback
+- **verification-before-completion** — code review is pre-completion evidence
+
+**Capture what you learned.** At close, record durable, evidence-backed insights (still true next month, tied to a file, test, or command). Never record guesses, one-offs, or secrets (tokens, keys, PII — every memory is injected into all future sessions). Update in place (`bd remember --key <key>`) rather than adding a near-duplicate.
+
+```bash
+bd remember "<kind>: <durable, evidence-backed insight>"   # kind: lesson / pattern / design / root-cause / research
 ```
 
 ## Common Rationalizations

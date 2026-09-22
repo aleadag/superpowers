@@ -1,34 +1,22 @@
 ---
-name: IDE / Platform Support Request
-about: Request support for a new IDE, editor, or AI coding tool
-labels: platform-support
+name: Platform support request
+about: Request support for a new coding agent / harness
+title: "[platform] "
+labels: ["harness-parity", "needs-triage"]
 ---
 
-<!--
-BEFORE FILING: Search existing issues — your IDE may already be
-requested or discussed.
--->
+## Harness
 
-- [ ] I searched existing issues for this IDE/platform
+<!-- Name + version of the CLI/agent (e.g. "ExampleCLI 2.3.1") -->
 
-## Which IDE or platform?
-<!-- Name and link -->
+## Install mechanism it supports
 
-## Does this tool have a plugin or extension system?
-<!-- If yes, link to the docs. If no, explain how third-party
-     integrations typically work with this tool. -->
+<!-- Plugin marketplace? Directory-based skill discovery? Hooks? Link the harness's plugin/extension docs. -->
 
-## Have you tried manual installation?
-<!-- Many tools work with Superpowers through manual setup even without
-     official support. Did you try? What happened? -->
+## What you tried
 
-## Environment (required)
-<!-- Required. We assume an agent wrote this request — tell us which one and
-     where it ran. -->
+<!-- Commands run and what happened — e.g. did `npx skills add DollarDill/beads-superpowers -g --copy -y` work for skills-only? -->
 
-| Field | Value |
-|-------|-------|
-| Harness you currently use (Claude Code, Cursor, etc.) | |
-| Harness version | |
-| Your model + version | |
-| All plugins installed | |
+## Session-start context
+
+<!-- Does the harness support any session-start hook or bootstrap injection? Link docs if known. -->

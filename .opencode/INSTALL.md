@@ -1,16 +1,17 @@
-# Installing Superpowers for OpenCode
+# Installing beads-superpowers for OpenCode
 
 ## Prerequisites
 
 - [OpenCode.ai](https://opencode.ai) installed
+- `bd` (beads) CLI — `npm install -g @beads/bd` — required for persistent task memory
 
 ## Installation
 
-Add superpowers to the `plugin` array in your `opencode.json` (global or project-level):
+Add beads-superpowers to the `plugin` array in your `opencode.json` (global or project-level):
 
 ```json
 {
-  "plugin": ["superpowers@git+https://github.com/obra/superpowers.git"]
+  "plugin": ["beads-superpowers@git+https://github.com/DollarDill/beads-superpowers.git"]
 }
 ```
 
@@ -20,46 +21,49 @@ registers all skills.
 Verify by asking: "Tell me about your superpowers"
 
 OpenCode uses its own plugin install. If you also use Claude Code, Codex, or
-another harness, install Superpowers separately for each one.
+another harness, install beads-superpowers separately for each one.
 
-## Migrating from the old symlink-based install
+## Migrating from the installer copy-mode (pre-0.12)
 
-If you previously installed superpowers using `git clone` and symlinks, remove the old setup:
+Earlier releases installed OpenCode support by copying files. If you used
+`install.sh` before 0.12, remove the old copies to avoid double injection
+once the git plugin is active:
 
 ```bash
-# Remove old symlinks
-rm -f ~/.config/opencode/plugins/superpowers.js
-rm -rf ~/.config/opencode/skills/superpowers
-
-# Optionally remove the cloned repo
-rm -rf ~/.config/opencode/superpowers
-
-# Remove skills.paths from opencode.json if you added one for superpowers
+rm -f ~/.config/opencode/plugins/beads-superpowers-plugin.ts
+rm -f ~/.config/opencode/hooks/session-start
 ```
 
-Then follow the installation steps above.
+For the copied skills (superseded by the plugin's auto-registered skills), run
+`install.sh --uninstall` — it removes exactly the set a prior install copied.
+Note its scope: `--uninstall` is a full multi-harness teardown — it also
+removes the Claude Code and Codex skills, hooks, and agents it installed, so
+reinstall for those harnesses afterward if you still use them.
+Avoid deleting from `~/.config/opencode/skills/` by hand: you risk removing
+skills you authored yourself.
 
 ## Usage
 
 Use OpenCode's native `skill` tool:
 
-```
+```text
 use skill tool to list skills
 use skill tool to load brainstorming
 ```
 
 ## Updating
 
-OpenCode installs Superpowers through a git-backed package spec. Some OpenCode
-and Bun versions pin that resolved git dependency in a lockfile or cache, so a
-restart may not pick up the newest Superpowers commit. If updates do not appear,
-clear OpenCode's package cache or reinstall the plugin.
+OpenCode installs beads-superpowers through a git-backed package spec. Some
+OpenCode and Bun versions pin that resolved git dependency in a lockfile or
+cache, so a restart may not pick up the newest beads-superpowers commit. If
+updates do not appear, clear OpenCode's package cache or reinstall the plugin.
 
-To pin a specific version:
+To pin a specific version, append a `#vX.Y.Z` ref (substitute a real release
+tag):
 
 ```json
 {
-  "plugin": ["superpowers@git+https://github.com/obra/superpowers.git#v5.0.3"]
+  "plugin": ["beads-superpowers@git+https://github.com/DollarDill/beads-superpowers.git#vX.Y.Z"]
 }
 ```
 
@@ -67,7 +71,7 @@ To pin a specific version:
 
 ### Plugin not loading
 
-1. Check logs: `opencode run --print-logs "hello" 2>&1 | grep -i superpowers`
+1. Check logs: `opencode run --print-logs "hello" 2>&1 | grep -i beads-superpowers`
 2. Verify the plugin line in your `opencode.json`
 3. Make sure you're running a recent version of OpenCode
 
@@ -80,14 +84,14 @@ the plugin, try installing with system npm and pointing OpenCode at the local
 package:
 
 ```powershell
-npm install superpowers@git+https://github.com/obra/superpowers.git --prefix "$HOME\.config\opencode"
+npm install beads-superpowers@git+https://github.com/DollarDill/beads-superpowers.git --prefix "$HOME\.config\opencode"
 ```
 
 Then use the installed package path in `opencode.json`:
 
 ```json
 {
-  "plugin": ["~/.config/opencode/node_modules/superpowers"]
+  "plugin": ["~/.config/opencode/node_modules/beads-superpowers"]
 }
 ```
 
@@ -98,18 +102,10 @@ Then use the installed package path in `opencode.json`:
 
 ### Tool mapping
 
-Skills speak in actions ("create a todo", "dispatch a subagent", "read a file"). On OpenCode these resolve to:
-
-- "Create a todo" / "mark complete in todo list" → `todowrite`
-- `Subagent (general-purpose):` template → `task` tool with `subagent_type: "general"` (or `"explore"` for codebase exploration)
-- "Invoke a skill" → OpenCode's native `skill` tool
-- "Read a file" → `read`
-- "Create a file" / "edit a file" / "delete a file" → `apply_patch`
-- "Run a shell command" → `bash`
-- "Search file contents" / "find files by name" → `grep`, `glob`
-- "Fetch a URL" → `webfetch`
+See skills/using-superpowers/references/opencode-tools.md — note this plugin
+tracks ALL tasks with the bd (beads) CLI, not the todo tools.
 
 ## Getting Help
 
-- Report issues: https://github.com/obra/superpowers/issues
-- Full documentation: https://github.com/obra/superpowers/blob/main/docs/README.opencode.md
+- Report issues: <https://github.com/DollarDill/beads-superpowers/issues>
+- Full documentation: <https://github.com/DollarDill/beads-superpowers>

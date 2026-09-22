@@ -1,287 +1,299 @@
-# Superpowers
+<p align="center"><strong>English</strong> · <a href="README.zh-CN.md">中文</a></p>
 
-Superpowers is a complete software development methodology for your coding agents, built on top of a set of composable skills and some initial instructions that make sure your agent uses them.
+<p align="center">
+  <img src="assets/banner.svg" alt="beads-superpowers - Process discipline and persistent memory for AI coding agents" width="100%" />
+</p>
 
+<p align="center">
+  <a href="LICENSE"><img alt="License: MIT" src="https://img.shields.io/badge/license-MIT-blue.svg"></a>
+  <a href="https://github.com/DollarDill/beads-superpowers/releases/latest"><img alt="Latest release" src="https://img.shields.io/github/v/release/DollarDill/beads-superpowers?color=4f46e5"></a>
+  <a href="https://github.com/DollarDill/beads-superpowers/stargazers"><img alt="GitHub stars" src="https://img.shields.io/github/stars/DollarDill/beads-superpowers?style=social"></a>
+  <a href="CONTRIBUTING.md"><img alt="PRs welcome" src="https://img.shields.io/badge/PRs-welcome-brightgreen.svg"></a>
+  <a href="https://algocents.com/beads-superpowers/"><img alt="Docs" src="https://img.shields.io/badge/docs-algocents.com-0ea5e9.svg"></a>
+</p>
 
-## We're Hiring!
+---
 
-We're hiring someone to help out full time with Superpowers community and code work. 
-You can read about the job at https://primeradiant.com/jobs/superpowers-community-engineer/
-If this sounds like someone you know, definitely send them our way.
+A plugin for Claude Code, Codex, OpenCode, and 7 more AI coding agents that makes your agent write tests before code, debug systematically instead of guessing, and remember what it worked on yesterday. Composable skills enforce the practices; a Dolt-backed issue tracker keeps context across sessions.
 
 ## Quickstart
 
-Give your agent Superpowers: [Claude Code](#claude-code), [Antigravity](#antigravity), [Codex App](#codex-app), [Codex CLI](#codex-cli), [Cursor](#cursor), [Factory Droid](#factory-droid), [Gemini CLI](#gemini-cli), [GitHub Copilot CLI](#github-copilot-cli), [Kimi Code](#kimi-code), [OpenCode](#opencode), [Pi](#pi).
-
-## How it works
-
-It starts from the moment you fire up your coding agent. As soon as it sees that you're building something, it *doesn't* just jump into trying to write code. Instead, it steps back and asks you what you're really trying to do. 
-
-Once it's teased a spec out of the conversation, it shows it to you in chunks short enough to actually read and digest. 
-
-After you've signed off on the design, your agent puts together an implementation plan that's clear enough for an enthusiastic junior engineer with poor taste, no judgement, no project context, and an aversion to testing to follow. It emphasizes true red/green TDD, YAGNI (You Aren't Gonna Need It), and DRY. 
-
-Next up, once you say "go", it launches a *subagent-driven-development* process, having agents work through each engineering task, inspecting and reviewing their work, and continuing forward. It's not uncommon for your agent to work autonomously for a couple hours at a time without deviating from the plan you put together.
-
-There's a bunch more to it, but that's the core of the system. And because the skills trigger automatically, you don't need to do anything special. Your coding agent just has Superpowers.
-
-## Commercial Services
-
-If you're using Superpowers in enterprise and could benefit from commercial support, additional tooling, or managed spending, please don't hesitate to drop us a line at sales@primeradiant.com.
-
-## Installation
-
-Installation differs by harness. If you use more than one, install Superpowers separately for each one.
-
-### Claude Code
-
-Superpowers is available via the [official Claude plugin marketplace](https://claude.com/plugins/superpowers)
-
-#### Official Marketplace
-
-- Install the plugin from Anthropic's official marketplace:
-
-  ```bash
-  /plugin install superpowers@claude-plugins-official
-  ```
-
-#### Superpowers Marketplace
-
-The Superpowers marketplace provides Superpowers and some other related plugins for Claude Code.
-
-- Register the marketplace:
-
-  ```bash
-  /plugin marketplace add obra/superpowers-marketplace
-  ```
-
-- Install the plugin from this marketplace:
-
-  ```bash
-  /plugin install superpowers@superpowers-marketplace
-  ```
-
-### Antigravity
-
-Install Superpowers as a plugin from this repository:
+The fastest path - Claude Code with native plugin install:
 
 ```bash
-agy plugin install https://github.com/obra/superpowers
+brew install beads                    # 1. Install bd (requires beads v1.1.0+)
+# From your shell:
+claude plugin marketplace add DollarDill/beads-superpowers
+claude plugin install beads-superpowers@beads-superpowers-marketplace
+# Or, inside a Claude Code session:
+# /plugin marketplace add DollarDill/beads-superpowers
+# /plugin install beads-superpowers@beads-superpowers-marketplace
+# Then in your project directory:
+bd init                               # 2. Bootstrap the Dolt database for this project
 ```
 
-Antigravity runs the plugin's session-start hook, so Superpowers is active from
-the first message. Reinstall with the same command to update.
+Start a new Claude Code session and type "where are we" - the agent will load your `bd` context and pick up where you left off.
 
-### Codex App
-
-Superpowers is available via the [official Codex plugin marketplace](https://github.com/openai/plugins).
-
-- In the Codex app, click on Plugins in the sidebar.
-- You should see `Superpowers` in the Coding section.
-- Click the `+` next to Superpowers and follow the prompts.
-
-### Codex CLI
-
-Superpowers is available via the [official Codex plugin marketplace](https://github.com/openai/plugins).
-
-- Open the plugin search interface:
-
-  ```bash
-  /plugins
-  ```
-
-- Search for Superpowers:
-
-  ```bash
-  superpowers
-  ```
-
-- Select `Install Plugin`.
-
-### Cursor
-
-- In Cursor Agent chat, install from marketplace:
-
-  ```text
-  /add-plugin superpowers
-  ```
-
-- Or search for "superpowers" in the plugin marketplace.
-
-### Factory Droid
-
-- Register the marketplace:
-
-  ```bash
-  droid plugin marketplace add https://github.com/obra/superpowers
-  ```
-
-- Install the plugin:
-
-  ```bash
-  droid plugin install superpowers@superpowers
-  ```
-
-### Gemini CLI
-
-- Install the extension:
-
-  ```bash
-  gemini extensions install https://github.com/obra/superpowers
-  ```
-
-- Update later:
-
-  ```bash
-  gemini extensions update superpowers
-  ```
-
-### GitHub Copilot CLI
-
-- Register the marketplace:
-
-  ```bash
-  copilot plugin marketplace add obra/superpowers-marketplace
-  ```
-
-- Install the plugin:
-
-  ```bash
-  copilot plugin install superpowers@superpowers-marketplace
-  ```
-
-### Kimi Code
-
-Superpowers is available in Kimi Code's plugin marketplace.
-
-- Open Kimi Code's plugin manager:
-
-  ```text
-  /plugins
-  ```
-
-- Go to `Marketplace` > `Superpowers` and install it.
-
-- Or install directly from this repository:
-
-  ```text
-  /plugins install https://github.com/obra/superpowers
-  ```
-
-- Detailed docs: [docs/README.kimi.md](docs/README.kimi.md)
-
-### OpenCode
-
-OpenCode uses its own plugin install; install Superpowers separately even if you
-already use it in another harness.
-
-- Tell OpenCode:
-
-  ```
-  Fetch and follow instructions from https://raw.githubusercontent.com/obra/superpowers/refs/heads/main/.opencode/INSTALL.md
-  ```
-
-- Detailed docs: [docs/README.opencode.md](docs/README.opencode.md)
-
-### Pi
-
-Install Superpowers as a Pi package from this repository:
-
-```bash
-pi install git:github.com/obra/superpowers
-```
-
-For local development, run Pi with this checkout loaded as a temporary package:
-
-```bash
-pi -e /path/to/superpowers
-```
-
-The Pi package loads the Superpowers skills and a small extension that injects the `using-superpowers` bootstrap at session startup and again after compaction. Pi has native skills, so no compatibility `Skill` tool is required. Subagent and task-list tools remain optional Pi companion packages.
+Using a different agent? Jump to install for [Codex CLI](#codex-cli), [OpenCode](#opencode), [Cursor](#cursor), [Gemini CLI](#gemini-cli), [GitHub Copilot CLI](#github-copilot-cli), [Kimi Code](#kimi-code), [Antigravity](#antigravity), [Factory Droid](#factory-droid), or [Pi](#pi).
 
 ## The Basic Workflow
 
-1. **brainstorming** - Activates before writing code. Refines rough ideas through questions, explores alternatives, presents design in sections for validation. Saves design document.
+1. **research-driven-development** - When the task needs understanding first: parallel research agents investigate and write a verified knowledge-base document before any design happens.
 
-2. **using-git-worktrees** - Activates after design approval. Creates isolated workspace on new branch, runs project setup, verifies clean test baseline.
+2. **brainstorming** - Refines the idea through one-question-at-a-time design dialogue, checks prior decisions in the knowledge store, and ends with a spec you approved - tracked in `bd` so it survives the session.
 
-3. **writing-plans** - Activates with approved design. Breaks work into bite-sized tasks (2-5 minutes each). Every task has exact file paths, complete code, verification steps.
+3. **stress-test** - Adversarially interrogates the approved spec branch by branch (offered at every spec review), so flaws surface before planning.
 
-4. **subagent-driven-development** or **executing-plans** - Activates with plan. Dispatches fresh subagent per task with two-stage review (spec compliance, then code quality), or executes in batches with human checkpoints.
+4. **writing-plans** - Turns the spec into bite-sized tasks with exact files, code, and verification steps. Every task becomes a `bd` bead.
 
-5. **test-driven-development** - Activates during implementation. Enforces RED-GREEN-REFACTOR: write failing test, watch it fail, write minimal code, watch it pass, commit. Deletes code written before tests.
+5. **stress-test** (again) - The same adversarial pass against the plan itself: task boundaries, parallel-safety, failure modes.
 
-6. **requesting-code-review** - Activates between tasks. Reviews against plan, reports issues by severity. Critical issues block progress.
+6. **subagent-driven-development** or **executing-plans** - Dispatches a fresh subagent per task, each in its own isolated worktree (implementers follow **test-driven-development**), or executes in batches with human checkpoints.
 
-7. **finishing-a-development-branch** - Activates when tasks complete. Verifies tests, presents options (merge/PR/keep/discard), cleans up worktree.
+7. **requesting-code-review** - Task-level and whole-branch reviews against the plan. Critical findings block progress.
 
-**The agent checks for relevant skills before any task.** Mandatory workflows, not suggestions.
+8. **verification-before-completion** - Nothing is called done without a command that proves it - evidence gates every close.
+
+9. **document-release** - Audits the project docs against what actually shipped, before the branch merges.
+
+10. **finishing-a-development-branch** - Presents merge/PR options and lands the plane: close the beads, sync, push.
+
+The agent checks for relevant skills before any task - these are mandatory workflows, not suggestions. And because every task, decision, and lesson lives in `bd`'s Dolt database, the next session starts where this one ended: type "where are we" and the agent picks the thread back up.
 
 ## What's Inside
 
-### Skills Library
+<!-- Curation rule: every distributed skill appears here except using-superpowers - the session bootstrap, which upstream's README also leaves out. The full reference lives on the docs site. -->
 
-**Testing**
-- **test-driven-development** - RED-GREEN-REFACTOR cycle (includes testing anti-patterns reference)
+### Testing
 
-**Debugging**
-- **systematic-debugging** - 4-phase root cause process (includes root-cause-tracing, defense-in-depth, condition-based-waiting techniques)
-- **verification-before-completion** - Ensure it's actually fixed
+| Skill | What it does |
+|-------|-------------|
+| `test-driven-development` | RED-GREEN-REFACTOR loop - Iron Law: no implementation without a failing test |
 
-**Collaboration** 
-- **brainstorming** - Socratic design refinement
-- **writing-plans** - Detailed implementation plans
-- **executing-plans** - Batch execution with checkpoints
-- **dispatching-parallel-agents** - Concurrent subagent workflows
-- **requesting-code-review** - Pre-review checklist
-- **receiving-code-review** - Responding to feedback
-- **using-git-worktrees** - Parallel development branches
-- **finishing-a-development-branch** - Merge/PR decision workflow
-- **subagent-driven-development** - Fast iteration with two-stage review (spec compliance, then code quality)
+### Debugging
 
-**Meta**
-- **writing-skills** - Create new skills following best practices (includes testing methodology)
-- **using-superpowers** - Introduction to the skills system
+| Skill | What it does |
+|-------|-------------|
+| `systematic-debugging` | 4-phase root-cause analysis before proposing any fix |
+| `verification-before-completion` | Evidence before claims - nothing is "done" until a command proved it |
+
+### Design & planning
+
+| Skill | What it does |
+|-------|-------------|
+| `brainstorming` | Socratic design session before any code - produces an approved spec |
+| `stress-test` | Adversarial interrogation of designs and plans, with recommended answers |
+| `writing-plans` | Bite-sized task plans - every task tracked as a `bd` bead |
+
+### Execution
+
+| Skill | What it does |
+|-------|-------------|
+| `subagent-driven-development` | Fresh agent per task with spec + quality review; parallel batch mode |
+| `executing-plans` | Batch plan execution in a single session with checkpoints |
+| `dispatching-parallel-agents` | Fans out 2+ independent tasks to parallel agents with no shared state |
+| `using-git-worktrees` | Isolated development branches per feature |
+| `requesting-code-review` | Dispatches a code-reviewer subagent with structured criteria |
+| `receiving-code-review` | Verifies review feedback against the code before implementing it - no reflexive agreement |
+| `finishing-a-development-branch` | Merge/PR flow + land the plane (close beads, sync, push) |
+
+### Documentation
+
+| Skill | What it does |
+|-------|-------------|
+| `write-documentation` | 14-rule writing system for human-facing prose - READMEs, guides, release notes |
+| `document-release` | Post-ship documentation audit - keeps the docs matching what actually shipped |
+
+### Memory & orientation
+
+| Skill | What it does |
+|-------|-------------|
+| `getting-up-to-speed` | Session orientation - loads `bd` context and produces a current-state summary |
+| `memory-curator` | Consolidates, deduplicates, and prunes the persistent memory store |
+| `session-handoff` | Writes a grounded handoff doc so the next session resumes mid-flight work |
+| `research-driven-development` | Parallel research agents → verified, persistent knowledge base |
+| `project-init` | Sets up, bootstraps, and recovers the beads/Dolt database behind persistent memory |
+
+**[Full skills reference →](https://algocents.com/beads-superpowers/skills/)**
+
+## How it works
+
+When you start a task, the agent runs **brainstorming** to nail down requirements before touching code, then **writing-plans** to break the work into `bd`-tracked steps that survive session restarts. During implementation it follows **test-driven-development** (failing test first, always) and can fan out to parallel subagents via **subagent-driven-development** - each agent working in its own git worktree. `bd` stores every task, decision, and note in a local Dolt database, so the agent picks up exactly where it left off next session without relying on chat history.
+
+Underneath all of it is a production-grade standard: the agent treats every task as if real users depend on it, so it won't quietly cut a corner, drop a requirement, or weaken a security control to move faster.
 
 ## Philosophy
 
-- **Test-Driven Development** - Write tests first, always
-- **Systematic over ad-hoc** - Process over guessing
-- **Complexity reduction** - Simplicity as primary goal
-- **Evidence over claims** - Verify before declaring success
+- **Design before code** - every feature starts as a spec a human approved, not a guess
+- **TDD is an Iron Law** - no implementation without a failing test
+- **Systematic over ad-hoc** - debugging follows a root-cause process, never guess-and-check
+- **Evidence before claims** - "done" requires a command that proves it
+- **Memory over chat history** - tasks, decisions, and lessons persist in `bd`, not in a scroll buffer
 
-Read [the original release announcement](https://blog.fsck.com/2025/10/09/superpowers/).
+The long form lives in [Methodology](https://algocents.com/beads-superpowers/methodology/).
+
+## Docs
+
+**[algocents.com/beads-superpowers](https://algocents.com/beads-superpowers/)** - getting started, methodology, skills reference, example workflow, and tips.
+
+- [Example Workflow docs](https://algocents.com/beads-superpowers/workflow/) - Full walkthrough with diagrams
+- [Skills Reference](https://algocents.com/beads-superpowers/skills/) - All skills explained
+- [Methodology](https://algocents.com/beads-superpowers/methodology/) - Why this workflow exists
+
+## Installation
+
+> **⚠️ Coexistence warning:** Do not install alongside [obra/superpowers](https://github.com/obra/superpowers). Skill names collide - pick one or the other.
+
+### Prerequisites
+
+**Install `bd` before the plugin.** Its hooks call `bd` on every session start; without it they fail silently and you lose persistent memory. Use Homebrew (`brew install beads`) or `npm install -g @beads/bd` on any platform. Verify with `bd version`.
+
+**Note:** Native plugin install installs skills and hooks, but not `bd init` - run that yourself per project.
+
+### Claude Code
+
+```bash
+claude plugin marketplace add DollarDill/beads-superpowers
+claude plugin install beads-superpowers@beads-superpowers-marketplace
+```
+
+Or as slash commands inside a Claude Code session: `/plugin marketplace add DollarDill/beads-superpowers` then `/plugin install beads-superpowers@beads-superpowers-marketplace`.
+
+### Codex CLI
+
+```bash
+codex plugin marketplace add DollarDill/beads-superpowers
+codex plugin install beads-superpowers@beads-superpowers-marketplace
+```
+
+After installing, enable hooks in `~/.codex/config.toml`:
+
+```toml
+[features]
+codex_hooks = true
+```
+
+To get the SessionStart hook under Codex, use the scripted installer (`install.sh`) rather than the plugin channel - the plugin channel installs the skills but does not wire the hook.
+
+### OpenCode
+
+Add to the `plugin` array in your `opencode.json` (global or project-level):
+
+```json
+{
+  "plugin": ["beads-superpowers@git+https://github.com/DollarDill/beads-superpowers.git"]
+}
+```
+
+Skills auto-register and the session bootstrap + beads context inject automatically - no other steps. Details, version pinning, migration from pre-0.12 installer copies, and troubleshooting: [.opencode/INSTALL.md](.opencode/INSTALL.md).
+
+### Cursor
+
+```text
+/add-plugin beads-superpowers
+```
+
+Run this command inside Cursor Agent. Update via the Marketplace UI.
+
+### Gemini CLI
+
+```bash
+gemini extensions install https://github.com/DollarDill/beads-superpowers
+```
+
+### GitHub Copilot CLI
+
+```bash
+copilot plugin marketplace add DollarDill/beads-superpowers
+copilot plugin install beads-superpowers@beads-superpowers-marketplace
+```
+
+Update:
+
+```bash
+copilot plugin update beads-superpowers
+```
+
+Note: rides the Claude-plugin fallback (skills + session-start via the shared `hooks/hooks.json`), the same mechanism upstream ships; requires Copilot CLI v1.0.11+ for session-start context injection.
+
+### Kimi Code
+
+```text
+/plugins install https://github.com/DollarDill/beads-superpowers
+```
+
+Run `/new` after install to start a fresh session with the plugin active.
+
+### Antigravity
+
+```bash
+agy plugin install https://github.com/DollarDill/beads-superpowers
+```
+
+Note: reuses the Claude plugin manifest - the same mechanism upstream verified.
+
+### Factory Droid
+
+```bash
+droid plugin marketplace add https://github.com/DollarDill/beads-superpowers
+droid plugin install beads-superpowers@beads-superpowers-marketplace
+```
+
+Note: reuses the Claude plugin manifest - the same mechanism upstream verified.
+
+### Pi
+
+```bash
+pi install git:github.com/DollarDill/beads-superpowers
+```
+
+### npx (any harness)
+
+Installs the skills only - no hooks. Skill activation relies on your harness's native skill discovery.
+
+```bash
+npx skills add DollarDill/beads-superpowers -g --copy -y
+```
+
+### Alternative: scripted install (`curl | bash`)
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/DollarDill/beads-superpowers/main/install.sh | bash
+```
+
+The script's role is broader than just copying files. Use it when you need any of:
+
+- **Beads/Dolt bootstrap** - auto-detects whether `bd` is installed and guides setup
+- **Hook registration** - writes the SessionStart entry to settings.json (required when using the install-script path)
+- **`yegge.md` orchestrator** - optional add-on: installed only when you pass `--with-yegge`. The flag forces the scripted tarball/git install tier (the plugin and npx tiers are skipped for that run), so it can't be combined with a plugin-managed install in one command
+- **Version pinning** - `--version X.Y.Z` for reproducible CI installs
+- **CI environments** - use `--yes --skip-checksum` for unattended runs
+
+Supports: `--yes` (skip prompts), `--version X.Y.Z`, `--with-yegge`, `--dry-run`, `--skip-checksum`, `--uninstall`.
+
+Updates: rerun your install command - plugin channels update via their marketplace, npx and the script by rerunning.
 
 ## Contributing
 
-The general contribution process for Superpowers is below. Keep in mind that we don't generally accept contributions of new skills and that any updates to skills must work across all of the coding agents we support.
+Contributions are welcome - see [`CONTRIBUTING.md`](CONTRIBUTING.md). PRs target the **`dev`** branch (`main` is the released branch). Ideas and questions live in [Discussions](https://github.com/DollarDill/beads-superpowers/discussions).
 
-1. Fork the repository
-2. Switch to the 'dev' branch
-3. Create a branch for your work
-4. Follow the `writing-skills` skill for creating and testing new and modified skills
-5. Submit a PR, being sure to fill in the pull request template.
+## Built on
 
-Skill-behavior tests use the drill eval harness from [superpowers-evals](https://github.com/prime-radiant-inc/superpowers-evals/), cloned into `evals/` — see `evals/README.md` for setup. Plugin-infrastructure tests live at `tests/` and run via the relevant `run-*.sh` or `npm test`.
+- **[Superpowers](https://github.com/obra/superpowers)** by Jesse Vincent - the skill system and development practices
+- **[Beads](https://github.com/gastownhall/beads)** by Steve Yegge - persistent issue tracking with cross-session memory
 
-See `skills/writing-skills/SKILL.md` for the complete guide.
+Individual skills adapted from:
 
-## Updating
-
-Superpowers updates are somewhat coding-agent dependent, but are often automatic.
+- **Garry Tan** - `document-release`, adapted from [garrytan/gstack](https://github.com/garrytan/gstack/tree/main/document-release)
+- **Matt Pocock** - `stress-test`, from [skills/grilling](https://github.com/mattpocock/skills/blob/main/skills/productivity/grilling/SKILL.md); `session-handoff`, from [skills/handoff](https://github.com/mattpocock/skills/blob/main/skills/productivity/handoff/SKILL.md)
+- **Ivan Neustroev ("Anbeeld")** - the writing system behind `write-documentation`, adapted from [WRITING.md](https://github.com/Anbeeld/WRITING.md) (MIT)
 
 ## License
 
-MIT License - see LICENSE file for details
-
-## Visual companion telemetry
-
-Because skills and plugins don't provide any feedback to creators, we have no idea how many of you are using Superpowers. By default, the Prime Radiant logo on brainstorming's optional visual companion feature is loaded from our website. It includes the version of Superpowers in use. It does not include any details about your project, prompt, or coding agent. We don't see your clicks or anything about what you're building. This helps us have a rough idea of how many folks are using Superpowers and which version of Superpowers they're using. It's 100% optional. To disable this, set the environment variable `SUPERPOWERS_DISABLE_TELEMETRY` to any true value. Superpowers also honors Claude Code's `DISABLE_TELEMETRY` and `CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC` opt-outs.
+[MIT](LICENSE)
 
 ## Community
 
-Superpowers is built by [Jesse Vincent](https://blog.fsck.com) and the rest of the folks at [Prime Radiant](https://primeradiant.com).
-
-- **Discord**: [Join us](https://discord.gg/35wsABTejz) for community support, questions, and sharing what you're building with Superpowers
-- **Issues**: https://github.com/obra/superpowers/issues
-- **Release announcements**: [Sign up](https://primeradiant.com/superpowers/) to get notified about new versions
+- **Ideas & questions:** [GitHub Discussions](https://github.com/DollarDill/beads-superpowers/discussions) - the pinned post is the front door
+- **Bugs:** [Issues](https://github.com/DollarDill/beads-superpowers/issues)
+- **Contact:** <dillon@algocents.com>

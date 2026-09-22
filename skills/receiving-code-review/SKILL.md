@@ -77,7 +77,9 @@ IF suggestion seems wrong:
   Push back with technical reasoning
 
 IF can't easily verify:
-  Say so: "I can't verify this without [X]. Should I [investigate/ask/proceed]?"
+  Use your structured question tool to ask for direction:
+  Question: "I can't verify this suggestion without [X]. How should I proceed?"
+  Options: "Investigate" (dig deeper to verify), "Ask reviewer" (request clarification from reviewer), "Proceed anyway" (implement without full verification)
 
 IF conflicts with your human partner's prior decisions:
   Stop and discuss with your human partner first
@@ -126,7 +128,9 @@ Push back when:
 - Reference working tests/code
 - Involve your human partner if architectural
 
-**If you're uncomfortable pushing back out loud:** Name that tension, then tell your partner about the issue you've seen. They'll appreciate your honesty.
+**If uncomfortable pushing back out loud:** Name that tension, then tell your partner about the issue.
+
+**Never** push back on, YAGNI-delete, or select "Proceed anyway" past a **security or material-risk** finding. Security/risk feedback is acted on or escalated — never dismissed. (Production-Grade Doctrine)
 
 ## Acknowledging Correct Feedback
 
@@ -160,6 +164,14 @@ If you pushed back and were wrong:
 ```
 
 State the correction factually and move on.
+
+**Capture what you learned.** At close, record durable, evidence-backed insights (still true next month, tied to a file, test, or command). Never record guesses, one-offs, or secrets (tokens, keys, PII — every memory is injected into all future sessions). Update in place (`bd remember --key <key>`) rather than adding a near-duplicate.
+
+```bash
+bd remember "<kind>: <durable, evidence-backed insight>"   # kind: lesson / pattern / design / root-cause / research
+```
+
+If a previous memory is now wrong, `bd forget <id>` first.
 
 ## Common Mistakes
 
@@ -203,3 +215,11 @@ You understand 1,2,3,6. Unclear on 4,5.
 ## GitHub Thread Replies
 
 When replying to inline review comments on GitHub, reply in the comment thread (`gh api repos/{owner}/{repo}/pulls/{pr}/comments/{id}/replies`), not as a top-level PR comment.
+
+## Integration
+
+**Invoked by:** Interrupt — fires when code review feedback arrives, regardless of workflow position.
+
+**Pairs with:** **requesting-code-review** — request/response pair. That skill dispatches the reviewer; this skill handles the feedback.
+
+**Used by:** **subagent-driven-development** — review feedback loops during task review gates.

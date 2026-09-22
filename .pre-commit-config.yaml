@@ -1,21 +1,58 @@
 repos:
+  # General file hygiene
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v5.0.0
+    hooks:
+      - id: trailing-whitespace
+        args: [--markdown-linebreak-ext=md]
+      - id: end-of-file-fixer
+      - id: check-yaml
+      - id: check-json
+      - id: check-merge-conflict
+      - id: check-added-large-files
+        args: [--maxkb=500]
+
+  # Markdown linting
+  - repo: https://github.com/DavidAnson/markdownlint-cli2
+    rev: v0.18.1
+    hooks:
+      - id: markdownlint-cli2
+
+  # Shell script linting
+  - repo: https://github.com/shellcheck-py/shellcheck-py
+    rev: v0.10.0.1
+    hooks:
+      - id: shellcheck
+        args: [-x]
+
+  # YAML frontmatter validation for skills
   - repo: local
     hooks:
-      - id: evals-ruff-check
-        name: evals ruff check
-        entry: uv --project evals run ruff check
-        language: system
-        files: ^evals/.*\.py$
-
-      - id: evals-ruff-format-check
-        name: evals ruff format --check
-        entry: uv --project evals run ruff format --check
-        language: system
-        files: ^evals/.*\.py$
-
-      - id: evals-ty-check
-        name: evals ty check
-        entry: uv --directory evals run ty check
+      - id: skill-frontmatter
+        name: Skill YAML frontmatter check
+        entry: python3 scripts/check-skill-frontmatter.py
         language: system
         pass_filenames: false
-        files: ^evals/.*\.py$
+        files: skills/.*SKILL\.md$
+
+  # Version/skill count consistency
+  - repo: local
+    hooks:
+      - id: version-sync
+        name: Version sync check
+        entry: bash scripts/bump-version.sh --check
+        language: system
+        pass_filenames: false
+        files: (package\.json|plugin\.json|marketplace\.json)
+      - id: skill-count-guard
+        name: Skill count drift guard + structural self-consistency
+        entry: bash scripts/check-skill-count.sh
+        language: system
+        pass_filenames: false
+        always_run: true
+      - id: convention-sync
+        name: Convention blocks guard (check-convention-sync)
+        entry: bash scripts/check-convention-sync.sh
+        language: system
+        pass_filenames: false
+        always_run: true

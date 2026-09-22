@@ -1,10 +1,11 @@
+import { execSync } from "node:child_process";
 import { readFileSync } from "node:fs";
 import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import type { ExtensionAPI } from "@earendil-works/pi-coding-agent";
 
 const EXTREMELY_IMPORTANT_MARKER = "<EXTREMELY_IMPORTANT>";
-const BOOTSTRAP_MARKER = "superpowers:using-superpowers bootstrap for pi";
+const BOOTSTRAP_MARKER = "beads-superpowers:using-superpowers bootstrap for pi";
 
 const extensionDir = dirname(fileURLToPath(import.meta.url));
 const packageRoot = resolve(extensionDir, "../..");
@@ -57,12 +58,11 @@ export default function superpowersPiExtension(pi: ExtensionAPI) {
 }
 
 function getBootstrapContent(): string | null {
-	if (cachedBootstrap !== undefined) return cachedBootstrap;
-
-	try {
-		const skillContent = readFileSync(bootstrapSkillPath, "utf8");
-		const body = stripFrontmatter(skillContent);
-		cachedBootstrap = `${EXTREMELY_IMPORTANT_MARKER}
+	if (cachedBootstrap === undefined) {
+		try {
+			const skillContent = readFileSync(bootstrapSkillPath, "utf8");
+			const body = stripFrontmatter(skillContent);
+			cachedBootstrap = `${EXTREMELY_IMPORTANT_MARKER}
 ${BOOTSTRAP_MARKER}
 
 You have superpowers.
@@ -73,11 +73,19 @@ ${body}
 
 ${piToolMapping()}
 </EXTREMELY_IMPORTANT>`;
-		return cachedBootstrap;
-	} catch {
-		cachedBootstrap = null;
-		return null;
+		} catch {
+			cachedBootstrap = null;
+		}
 	}
+
+	if (!cachedBootstrap) return null;
+
+	let beads = "";
+	try {
+		beads = execSync("bd prime 2>/dev/null", { encoding: "utf8", timeout: 10000 });
+	} catch { /* bd absent or not a beads workspace */ }
+
+	return cachedBootstrap + (beads ? `\n<beads-context>\n${beads}\n</beads-context>` : "");
 }
 
 function stripFrontmatter(content: string): string {

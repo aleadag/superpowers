@@ -1,16 +1,19 @@
 {
-  "name": "superpowers",
-  "version": "6.2.0",
-  "description": "Superpowers skills and runtime bootstrap for coding agents",
+  "name": "beads-superpowers",
+  "version": "0.16.0",
   "type": "module",
-  "main": ".opencode/plugins/superpowers.js",
+  "main": ".opencode/plugins/beads-superpowers.js",
+  "description": "Superpowers skills + Beads issue tracking for Claude Code, Codex, OpenCode, and 7 more AI coding agents — TDD, debugging, persistent task memory.",
+  "author": "Dillon Frawley <dillon@algocents.com>",
   "keywords": [
     "pi-package",
     "skills",
     "tdd",
     "debugging",
     "collaboration",
-    "workflow"
+    "workflow",
+    "beads",
+    "issue-tracking"
   ],
   "pi": {
     "extensions": [

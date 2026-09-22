@@ -1,21 +1,52 @@
 {
   "files": [
-    { "path": "package.json", "field": "version" },
-    { "path": ".claude-plugin/plugin.json", "field": "version" },
-    { "path": ".cursor-plugin/plugin.json", "field": "version" },
-    { "path": ".codex-plugin/plugin.json", "field": "version" },
-    { "path": ".kimi-plugin/plugin.json", "field": "version" },
-    { "path": ".claude-plugin/marketplace.json", "field": "plugins.0.version" },
-    { "path": "gemini-extension.json", "field": "version" }
+    {
+      "path": "package.json",
+      "key": "version"
+    },
+    {
+      "path": ".claude-plugin/plugin.json",
+      "key": "version"
+    },
+    {
+      "path": ".claude-plugin/marketplace.json",
+      "key": "plugins[0].version"
+    },
+    {
+      "path": ".codex-plugin/plugin.json",
+      "key": "version"
+    },
+    {
+      "path": ".codex-plugin/marketplace.json",
+      "key": "plugins[0].version"
+    },
+    {
+      "path": ".cursor-plugin/plugin.json",
+      "key": "version"
+    },
+    {
+      "path": ".kimi-plugin/plugin.json",
+      "key": "version"
+    },
+    {
+      "path": "gemini-extension.json",
+      "key": "version"
+    }
+  ],
+  "prose": [
+    {
+      "path": "CLAUDE.md",
+      "prefix": "**Version:** "
+    }
   ],
   "audit": {
     "exclude": [
-      "CHANGELOG.md",
-      "RELEASE-NOTES.md",
       "node_modules",
       ".git",
-      ".version-bump.json",
-      "scripts/bump-version.sh"
+      ".beads",
+      ".internal",
+      "CHANGELOG.md",
+      "docs/"
     ]
   }
 }

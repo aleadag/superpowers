@@ -1,14 +1,14 @@
 {
-  "name": "superpowers",
-  "displayName": "Superpowers",
-  "description": "Core skills library: TDD, debugging, collaboration patterns, and proven techniques",
-  "version": "6.2.0",
+  "name": "beads-superpowers",
+  "displayName": "Beads Superpowers",
+  "description": "Plugin merging Superpowers skills with Beads issue tracking. Composable skills + persistent task memory for AI coding agents.",
+  "version": "0.16.0",
   "author": {
-    "name": "Jesse Vincent",
-    "email": "jesse@fsck.com"
+    "name": "Dillon Frawley",
+    "email": "dillon@algocents.com"
   },
-  "homepage": "https://github.com/obra/superpowers",
-  "repository": "https://github.com/obra/superpowers",
+  "homepage": "https://algocents.com/beads-superpowers/",
+  "repository": "https://github.com/DollarDill/beads-superpowers",
   "license": "MIT",
   "keywords": [
     "skills",
@@ -16,7 +16,9 @@
     "debugging",
     "collaboration",
     "best-practices",
-    "workflows"
+    "workflows",
+    "beads",
+    "issue-tracking"
   ],
   "skills": "./skills/",
   "hooks": "./hooks/hooks-cursor.json"

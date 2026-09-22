@@ -1,19 +1,19 @@
 {
-  "name": "superpowers-dev",
-  "description": "Development marketplace for Superpowers core skills library",
+  "name": "beads-superpowers-marketplace",
+  "description": "Marketplace for beads-superpowers — Superpowers skills + Beads issue tracking for AI coding agents",
   "owner": {
-    "name": "Jesse Vincent",
-    "email": "jesse@fsck.com"
+    "name": "Dillon Frawley",
+    "email": "dillon@algocents.com"
   },
   "plugins": [
     {
-      "name": "superpowers",
-      "description": "Core skills library for Claude Code: TDD, debugging, collaboration patterns, and proven techniques",
-      "version": "6.2.0",
+      "name": "beads-superpowers",
+      "description": "Superpowers skills + Beads issue tracking for Claude Code, Codex, OpenCode, and 7 more AI coding agents: TDD, debugging, code review, and persistent task memory.",
+      "version": "0.16.0",
       "source": "./",
       "author": {
-        "name": "Jesse Vincent",
-        "email": "jesse@fsck.com"
+        "name": "Dillon Frawley",
+        "email": "dillon@algocents.com"
       }
     }
   ]

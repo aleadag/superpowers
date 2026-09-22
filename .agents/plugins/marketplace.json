@@ -1,11 +1,11 @@
 {
-  "name": "superpowers-dev",
+  "name": "beads-superpowers",
   "interface": {
-    "displayName": "Superpowers Dev"
+    "displayName": "beads-superpowers"
   },
   "plugins": [
     {
-      "name": "superpowers",
+      "name": "beads-superpowers",
       "source": {
         "source": "url",
         "url": "./"

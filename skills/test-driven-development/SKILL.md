@@ -13,6 +13,8 @@ Write the test first. Watch it fail. Write minimal code to pass.
 
 **Violating the letter of the rules is violating the spirit of the rules.**
 
+**Spec-backed:** implementation starts from an approved spec or plan. Before the first edit, state the file you are working from — `Working from: <spec-or-plan path>`. No such file yet? Say so and run brainstorming first. A plan task, a completed root-cause investigation, or a typo/comment/rename already satisfies this.
+
 ## When to Use
 
 **Always:**
@@ -35,6 +37,8 @@ NO PRODUCTION CODE WITHOUT A FAILING TEST FIRST
 ```
 
 Write code before the test? Delete it. Start over.
+
+TDD's Iron Law is one instance of the Production-Grade Doctrine — the no-shortcuts posture applied to tests.
 
 **No exceptions:**
 - Don't keep it as "reference"
@@ -203,12 +207,6 @@ Next failing test for next feature.
 | **Clear** | Name describes behavior | `test('test1')` |
 | **Shows intent** | Demonstrates desired API | Obscures what code should do |
 
-When writing or changing any test, read [writing-good-tests.md](writing-good-tests.md) for the rules that keep tests honest:
-- Name the production change that would make the test fail — before writing it
-- Assert on real behavior, never on mock behavior
-- Keep test-only code in test utilities, out of production classes
-- Understand a dependency's side effects before mocking it
-
 ## Common Rationalizations
 
 | Excuse | Reality |
@@ -304,11 +302,25 @@ Can't check all boxes? You skipped TDD. Start over.
 | Must mock everything | Code too coupled. Use dependency injection. |
 | Test setup huge | Extract helpers. Still complex? Simplify design. |
 
+**Capture what you learned.** At close, record durable, evidence-backed insights (still true next month, tied to a file, test, or command). Never record guesses, one-offs, or secrets (tokens, keys, PII — every memory is injected into all future sessions). Update in place (`bd remember --key <key>`) rather than adding a near-duplicate.
+
+```bash
+bd remember "<kind>: <durable, evidence-backed insight>"   # kind: lesson / pattern / design / root-cause / research
+```
+
 ## Debugging Integration
 
 Bug found? Write failing test reproducing it. Follow TDD cycle. Test proves fix and prevents regression.
 
 Never fix bugs without a test.
+
+## Writing Good Tests
+
+When writing or changing any test, read @writing-good-tests.md for the six rules and the two traps that counterfeit falsifiability:
+- Name the production change that would make the test fail — before writing it
+- Assert on real behavior, never on mock behavior
+- Keep test-only code in test utilities, out of production classes
+- Understand a dependency's side effects before mocking it
 
 ## Final Rule
 
@@ -318,3 +330,13 @@ Otherwise → not TDD
 ```
 
 No exceptions without your human partner's permission.
+
+## Integration
+
+**Invoked by:** Any task that writes production code, or user on-demand.
+
+**Used by:**
+- **subagent-driven-development** — implementer subagents follow TDD discipline.
+- **executing-plans** — per-task execution follows TDD cycle.
+
+**Pairs with:** **systematic-debugging** — Phase 4 of debugging creates a failing test to prove the root cause, then follows TDD to fix it.

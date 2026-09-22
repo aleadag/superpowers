@@ -17,7 +17,9 @@ Skills speak in actions ("dispatch a subagent", "create a todo", "read a file").
 | Invoke a skill | `activate_skill` |
 | Dispatch a subagent (`Subagent (general-purpose):` template) | `invoke_agent` with `agent_name: "generalist"` (invocable via `@generalist` chat syntax — see [Subagent support](#subagent-support)) |
 | Multiple parallel dispatches | Multiple `invoke_agent` calls in the same response |
-| Task tracking ("create a todo", "mark complete") | `write_todos` (statuses: pending, in_progress, completed, cancelled, blocked) |
+| Task tracking ("create a todo", "mark complete") | task tracking uses the `bd` (beads) CLI via the shell — Do NOT use TodoWrite |
+
+This plugin tracks ALL tasks with the `bd` (beads) CLI run via the shell — Do NOT use TodoWrite. When a skill says to create a todo list or track tasks, use `bd create`, `bd update`, and `bd close` commands via `run_shell_command`. Run `bd prime` at the start of each session to load persistent project memory.
 
 ## Instructions file
 
@@ -31,12 +33,12 @@ User-level skills live at **`~/.gemini/skills/`**, with **`~/.agents/skills/`** 
 
 Gemini CLI dispatches subagents through the `invoke_agent` tool, which takes `agent_name` and `prompt` parameters. The same dispatch is also surfaced as a chat-syntax shortcut: typing `@generalist <prompt>` is equivalent to calling `invoke_agent` with `agent_name: "generalist"`. Built-in agent names include `generalist`, `cli_help`, `codebase_investigator`, and (with browser tooling enabled) `browser_agent`.
 
-Skills dispatch with `Subagent (general-purpose):` and either reference a prompt-template file (e.g., `superpowers:subagent-driven-development`'s `./implementer-prompt.md`) or supply an inline prompt. On Gemini CLI:
+Skills dispatch with `Subagent (general-purpose):` and either reference a prompt-template file (e.g., `beads-superpowers:subagent-driven-development`'s `./implementer-prompt.md`) or supply an inline prompt. On Gemini CLI:
 
 | Skill dispatch form | Gemini CLI equivalent |
 |---------------------|----------------------|
 | References a `*-prompt.md` template (implementer, task-reviewer, code-reviewer, etc.) | Fill the template, then `invoke_agent` with `agent_name: "generalist"` and the filled prompt |
-| References `superpowers:requesting-code-review`'s `./code-reviewer.md` | `invoke_agent` with `agent_name: "generalist"` and the filled review template |
+| References `beads-superpowers:requesting-code-review`'s `./code-reviewer.md` | `invoke_agent` with `agent_name: "generalist"` and the filled review template |
 | Inline prompt (no template referenced) | `invoke_agent` with `agent_name: "generalist"` and your inline prompt |
 
 ### Prompt filling

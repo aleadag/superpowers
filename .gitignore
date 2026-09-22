@@ -1,13 +1,75 @@
-.worktrees/
-.private-journal/
-.claude/
-.superpowers/
-.DS_Store
-node_modules/
-inspo
-triage/
 
-# Eval harness lives in its own repository, cloned into evals/ for local
-# development (see CLAUDE.md / README.md). It is not part of the published
-# plugin, so the whole directory is ignored here.
-evals/
+# MkDocs build output
+site/
+
+# Internal working docs (plans, specs, research, audits, reference)
+.internal/
+
+# Temporary files
+.tmp/
+
+# Architecture Decision Records (local working docs)
+docs/decisions/*
+!docs/decisions/.gitkeep
+
+# Beads / Dolt files (added by bd init)
+.dolt/
+*.db
+.beads-credential-key
+
+# Session work logs (internal, not part of the plugin)
+SESSION-SUMMARY.md
+.sessions/
+.claude/session-log.jsonl
+# Local hook/permission settings — hook is registered globally; a tracked copy double-injected (beads-superpowers-jb3u)
+.claude/settings.json
+
+# Dependencies
+node_modules/
+
+# Worktrees (isolated development branches)
+.worktrees/
+
+# npx skills install artifacts (symlinks created by Vercel Skills CLI)
+.agents/
+.claude/skills/*
+# …except the tracked maintainer-only skill (ADR-0044): linted by content guards, NOT distributed
+!.claude/skills/auditing-upstream-drift/
+skills-lock.json
+
+# Agent-specific directories created by npx skills (28+ dotdirs)
+.adal/
+.augment/
+.bob/
+.codebuddy/
+.commandcode/
+.continue/
+.cortex/
+.crush/
+.factory/
+.goose/
+.iflow/
+.junie/
+.kilocode/
+.kiro/
+.kode/
+.mcpjam/
+.mux/
+.neovate/
+.openhands/
+.pochi/
+.qoder/
+.qwen/
+.roo/
+.trae/
+.vibe/
+.windsurf/
+.zencoder/
+
+# Beads workspace — infrastructure for plugin USERS, not tracked here
+.beads/
+issues.jsonl
+
+# cache
+.cache/
+npx-testing/

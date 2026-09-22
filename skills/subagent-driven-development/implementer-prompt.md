@@ -3,17 +3,17 @@
 Use this template when dispatching an implementer subagent.
 
 ```
-Subagent (general-purpose):
+Agent tool (subagent_type: "general-purpose"):
+  # Do NOT use "implementer" — that is Claude Code's built-in agent type
+  # with its own system prompt, which overrides this prompt template.
   description: "Implement Task N: [task name]"
-  model: [MODEL — REQUIRED: choose per SKILL.md Model Selection; an omitted
-         model silently inherits the session's most expensive one]
   prompt: |
     You are implementing Task N: [task name]
 
     ## Task Description
 
-    Read your task brief first: [BRIEF_FILE]
-    It contains the full task text from the plan.
+    Read your task brief first: [BRIEF_FILE] — it is your requirements. (The controller
+    writes it with `scripts/task-brief <plan-file> <N>`; see the skill's File Handoffs section.)
 
     ## Context
 
@@ -29,23 +29,64 @@ Subagent (general-purpose):
 
     **Ask them now.** Raise any concerns before starting work.
 
-    ## Your Job
+    ## Beads Lifecycle (Controller-Owned)
 
-    Once you're clear on requirements:
-    1. Implement exactly what the task specifies
-    2. Write tests (following TDD if task says to)
-    3. Verify implementation works
-    4. Commit your work
-    5. Self-review (see below)
-    6. Report back
+    Your task is tracked as a bead, but only the orchestrating agent manages
+    beads — subagents do NOT touch beads. Never run `bd` commands. The
+    controller claims the bead before dispatching you and closes it after
+    reviewing your report — your report is the close evidence (see Report
+    Format), and a bead closed without verification evidence is worse than
+    a bead left open.
+
+    ## Mandatory Skills
+
+    Invoke these skills explicitly via the `Skill` tool at each step of your workflow:
+
+    - `Skill(beads-superpowers:test-driven-development)` — RED-GREEN-REFACTOR for ALL code changes. Write the failing test FIRST.
+    - `Skill(beads-superpowers:systematic-debugging)` — 4-phase root cause analysis when tests fail unexpectedly. Do NOT guess at fixes.
+    - `Skill(beads-superpowers:verification-before-completion)` — Evidence before closing any bead. Run the verification command, read the output, THEN claim success.
+
+    ## Code Intelligence
+
+    **LSP is your DEFAULT code navigation tool.** Before editing any function:
+    - Use `findReferences` and `incomingCalls` to check blast radius
+    - Use `hover` to verify type contracts
+
+    After editing:
+    - Check LSP diagnostics for type/lint errors
+    - Verify all usage sites are updated
+
+    Before writing any test, use `findReferences` and `incomingCalls` on the function
+    being changed to identify the dependency graph. Target tests at dependency
+    boundaries — not internal implementation.
+
+    ## Your Workflow
+
+    For each task:
+
+    ```text
+    1. Read the task requirements from the plan
+    2. Invoke Skill(beads-superpowers:test-driven-development) — write failing test FIRST
+    3. Implement the minimum code to pass the test
+    4. If tests fail unexpectedly → Invoke Skill(beads-superpowers:systematic-debugging)
+    5. Run acceptance criteria checks
+    6. If ALL pass → Invoke Skill(beads-superpowers:verification-before-completion)
+    7. Commit your work
+    8. Report back with evidence + suggested close reason — the controller closes the bead
+    ```
 
     Work from: [directory]
 
     **While you work:** If you encounter something unexpected or unclear, **ask questions**.
     It's always OK to pause and clarify. Don't guess or make assumptions.
 
-    While iterating, run the focused test for what you're changing; run the
-    full suite once before committing, not after every edit.
+    ## Implementation Principles
+
+    - **Follow the plan** — Do not deviate, skip steps, or add unplanned changes
+    - **Minimal changes** — Make the smallest change that satisfies the step
+    - **Escalate, don't improvise** — If the plan doesn't work, stop and explain why
+    - **Zero silent failures** — If a test fails or a command errors, report immediately
+    - **Never drop a requirement or regress security** to satisfy the plan, a deadline, or "minimal changes." If the plan seems to require either, stop and report it.
 
     ## Code Organization
 
@@ -100,43 +141,55 @@ Subagent (general-purpose):
     - Do tests actually verify behavior (not just mock behavior)?
     - Did I follow TDD if required?
     - Are tests comprehensive?
-    - Is the test output pristine (no stray warnings or noise)?
 
     If you find issues during self-review, fix them now before reporting.
 
+    If a reviewer finds issues and you fix them, re-run the tests that cover
+    the amended code and append the results to your report file. Reviewers
+    will not re-run tests for you — your report is the test evidence.
+
     ## After Review Findings
 
-    If the task review finds issues, you will be resumed with the findings.
-    Fix them, re-run the tests that cover the amended code, and append a fix
-    report to your report file: what you changed, the covering tests you
-    ran, the command, and the output. Reviewers will not re-run tests for
-    you — your report is the test evidence. Then reply with the same short
-    status contract as your first report.
+    If this dispatch hands you review findings, you are continuing a task a previous
+    implementer started. You have: the task brief, the findings, and the most recent
+    section of the report file. Earlier rounds are in the report file if you need
+    them — read it, don't guess.
+
+    For each finding: fix it, or explain concretely why it is not a defect. Do not
+    silently skip one. If two findings conflict, say so and stop rather than
+    picking one.
+
+    - Write a failing test FIRST for any behavioral fix (RED), then make it pass
+      (GREEN). Report both.
+    - Run the FULL test suite, not just the tests near your change. A fix that
+      resolves its finding and breaks something else is not a fix.
+    - Test output must be pristine — no new warnings, no tests you skipped.
+    - **Append** a new section to the report file for this round. Never overwrite
+      earlier rounds; the accumulated report is the durable record.
+
+    Then reply to the controller with the same short status contract as your first
+    report.
 
     ## Report Format
 
-    Write your full report to [REPORT_FILE]:
+    Write your full report to `[REPORT_FILE]` (a path the controller provides,
+    typically `.internal/sdd/<plan-basename>/task-<N>-report.md`). Include:
+    - **Status:** DONE | DONE_WITH_CONCERNS | BLOCKED | NEEDS_CONTEXT
     - What you implemented (or what you attempted, if blocked)
     - What you tested and test results
-    - **TDD Evidence** (if TDD was required for this task):
-      - RED: command run, relevant failing output before implementation, and why the failure was expected
-      - GREEN: command run and relevant passing output after implementation
     - Files changed
+    - Bead ID and suggested close reason
     - Self-review findings (if any)
     - Any issues or concerns
 
-    Then report back with ONLY (under 15 lines — the detail lives in the
-    report file):
-    - **Status:** DONE | DONE_WITH_CONCERNS | BLOCKED | NEEDS_CONTEXT
-    - Commits created (short SHA + subject)
-    - One-line test summary (e.g. "14/14 passing, output pristine")
-    - Your concerns, if any
-    - The report file path
-
-    If BLOCKED or NEEDS_CONTEXT, put the specifics in the final message
-    itself — the controller acts on it directly.
+    Then report back to the controller with ONLY a short summary (the detail
+    lives in the report file): the **Status**, commits created (short SHA +
+    subject), a one-line test summary, your concerns if any, and the **report
+    file path**.
 
     Use DONE_WITH_CONCERNS if you completed the work but have doubts about correctness.
     Use BLOCKED if you cannot complete the task. Use NEEDS_CONTEXT if you need
     information that wasn't provided. Never silently produce work you're unsure about.
+    If BLOCKED or NEEDS_CONTEXT, put the specifics in the final message itself —
+    the controller acts on it directly.
 ```

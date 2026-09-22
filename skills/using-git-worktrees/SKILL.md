@@ -1,105 +1,127 @@
 ---
 name: using-git-worktrees
-description: Use when starting feature work that needs isolation from current workspace or before executing implementation plans - ensures an isolated workspace exists via native tools or git worktree fallback
+description: Use when starting feature work that needs isolation from current workspace or before executing implementation plans - creates isolated git worktrees with smart directory selection and safety verification
 ---
 
 # Using Git Worktrees
 
 ## Overview
 
-Ensure work happens in an isolated workspace. Prefer your platform's native worktree tools. Fall back to manual git worktrees only when no native tool is available.
+Git worktrees create isolated workspaces sharing the same repository, allowing work on multiple branches simultaneously without switching.
 
-**Core principle:** Detect existing isolation first. Then use native tools. Then fall back to git. Never fight the harness.
+**Core principle:** Systematic directory selection + safety verification = reliable isolation.
 
 **Announce at start:** "I'm using the using-git-worktrees skill to set up an isolated workspace."
 
-## Step 0: Detect Existing Isolation
+## Iron Law: Use `bd worktree`, NOT `git worktree`
 
-**Before creating anything, check if you are already in an isolated workspace.**
+```
+ALWAYS use bd worktree commands. NEVER use raw git worktree commands.
+```
+
+**Why:** `bd worktree create` does everything `git worktree add` does PLUS:
+- Worktree automatically shares the main repo's beads database via git common directory discovery
+- Adds the worktree path to `.gitignore` automatically
+- Ensures consistent issue state across all worktrees
+
+Raw `git worktree add` misses `.gitignore` setup and safety checks — while beads database sharing works via git common directory, you lose the automation `bd worktree create` provides.
+
+| Action | Use This | NOT This |
+|--------|----------|----------|
+| Create worktree | `bd worktree create .worktrees/<name>` | ~~`git worktree add`~~ |
+| List worktrees | `bd worktree list` | ~~`git worktree list`~~ |
+| Remove worktree | `bd worktree remove .worktrees/<name>` (if the safety check flags the local-only branch as unpushed, verify the merge landed, then add --force) | ~~`git worktree remove`~~ |
+| Worktree info | `bd worktree info` | ~~(no equivalent)~~ |
+
+> **Note:** Claude Code provides a native `EnterWorktree` tool for worktree management. For non-beads projects, this is a viable alternative. For beads-integrated projects, `bd worktree create` remains mandatory — it handles database sharing and `.gitignore` management that `EnterWorktree` does not provide.
+>
+> **Deliberate divergence from upstream:** superpowers v6.0.3 rewrote this skill to prefer the harness-native worktree tool first (`EnterWorktree` → existing `.worktrees/` → raw `git worktree`). We do **not** adopt that native-tool-first selection order — it bypasses `bd worktree`'s beads-database sharing across worktrees. The Iron Law above (always `bd worktree`) is intentional and takes precedence.
+
+## Directory Selection
+
+Always create worktrees under `.worktrees/` in the project root:
+
+- `bd worktree create .worktrees/<name>` — creates the worktree at `.worktrees/<name>` and adds the path to `.gitignore` automatically
+- **Trap:** the bare-name form (`bd worktree create <name>`) creates at `./<name>`, cluttering the repo root — always pass the full path
+- If your project's CLAUDE.md names a different preferred worktree directory, pass that path instead
+
+## Safety Verification
+
+`bd worktree create` automatically adds the worktree path to `.gitignore` when inside the repo root. Verify as a safety net:
+
+```bash
+git check-ignore -q <worktree-path> 2>/dev/null
+```
+
+**If NOT ignored** (edge case — `bd worktree create` should have handled this): add the path to `.gitignore` and commit.
+
+## Pre-Flight Checks
+
+Run these checks BEFORE creating any worktree.
+
+### Detect Existing Worktree Isolation
+
+Check whether you are already inside a worktree:
 
 ```bash
 GIT_DIR=$(cd "$(git rev-parse --git-dir)" 2>/dev/null && pwd -P)
 GIT_COMMON=$(cd "$(git rev-parse --git-common-dir)" 2>/dev/null && pwd -P)
-BRANCH=$(git branch --show-current)
+if [ "$GIT_DIR" != "$GIT_COMMON" ]; then
+  echo "WARNING: Already inside a worktree."
+fi
 ```
 
-**Submodule guard:** `GIT_DIR != GIT_COMMON` is also true inside git submodules. Before concluding "already in a worktree," verify you are not in a submodule:
+If already in a worktree, warn and ask via your structured question tool whether to proceed (creating a nested worktree) or abort.
+
+### Submodule Guard
+
+Check whether you are inside a git submodule:
 
 ```bash
-# If this returns a path, you're in a submodule, not a worktree — treat as normal repo
-git rev-parse --show-superproject-working-tree 2>/dev/null
+SUPERPROJECT=$(git rev-parse --show-superproject-working-tree 2>/dev/null)
+if [ -n "$SUPERPROJECT" ]; then
+  echo "WARNING: Inside a git submodule. Worktrees behave unpredictably here."
+fi
 ```
 
-**If `GIT_DIR != GIT_COMMON` (and not a submodule):** You are already in a linked worktree. Skip to Step 2 (Project Setup). Do NOT create another worktree.
+If inside a submodule, warn and **stop**. Do NOT create worktrees inside submodules.
 
-Report with branch state:
-- On a branch: "Already in isolated workspace at `<path>` on branch `<name>`."
-- Detached HEAD: "Already in isolated workspace at `<path>` (detached HEAD, externally managed). Branch creation needed at finish time."
+### Consent Flow
 
-**If `GIT_DIR == GIT_COMMON` (or in a submodule):** You are in a normal repo checkout.
+- **User-initiated** (manual worktree creation): Ask via your structured question tool before creating — "I'd like to create a worktree at `<path>`. Proceed?"
+- **Dispatched by subagent-driven-development**: Consent is implicit — the orchestrator authorized worktree creation. Skip the prompt.
 
-Has the user already indicated their worktree preference in your instructions? If not, ask for consent before creating a worktree:
+## Creation Steps
 
-> "Would you like me to set up an isolated worktree? It protects your current branch from changes."
+### 0. Claim the bead first
 
-Honor any existing declared preference without asking. If the user declines consent, work in place and skip to Step 2.
-
-## Step 1: Create Isolated Workspace
-
-**You have two mechanisms. Try them in this order.**
-
-### 1a. Native Worktree Tools (preferred)
-
-The user has asked for an isolated workspace (Step 0 consent). Do you already have a way to create a worktree? It might be a tool with a name like `EnterWorktree`, `WorktreeCreate`, a `/worktree` command, or a `--worktree` flag. If you do, use it and skip to Step 2.
-
-Native tools handle directory placement, branch creation, and cleanup automatically. Using `git worktree add` when you have a native tool creates phantom state your harness can't see or manage.
-
-Only proceed to Step 1b if you have no native worktree tool available.
-
-### 1b. Git Worktree Fallback
-
-**Only use this if Step 1a does not apply** — you have no native worktree tool available. Create a worktree manually using git.
-
-#### Directory Selection
-
-Follow this priority order. Explicit user preference always beats observed filesystem state.
-
-1. **Check your instructions for a declared worktree directory preference.** If the user has already specified one, use it without asking.
-
-2. **Check for an existing project-local worktree directory:**
-   ```bash
-   ls -d .worktrees 2>/dev/null     # Preferred (hidden)
-   ls -d worktrees 2>/dev/null      # Alternative
-   ```
-   If found, use it. If both exist, `.worktrees` wins.
-
-3. **If there is no other guidance available**, default to `.worktrees/` at the project root.
-
-#### Safety Verification (project-local directories only)
-
-**MUST verify directory is ignored before creating worktree:**
+Before creating the worktree, claim the issue you're about to work on. This prevents ownerless work — you own the bead before any environment exists.
 
 ```bash
-git check-ignore -q .worktrees 2>/dev/null || git check-ignore -q worktrees 2>/dev/null
+bd update <issue-id> --claim
 ```
 
-**If NOT ignored:** Add to .gitignore, commit the change, then proceed.
+> **`--claim` consent boundary.** Claim the specific bead you are about to work on (`bd update <id> --claim`, above). The autonomous take-next form `bd ready --claim` is NOT this skill's pattern and is FORBIDDEN wherever the user picks the work — the consent gate binds even when this skill is not loaded.
 
-**Why critical:** Prevents accidentally committing worktree contents to repository.
-
-#### Create the Worktree
+### 1. Create Worktree with `bd worktree create`
 
 ```bash
-# Determine path based on chosen location
-path="$LOCATION/$BRANCH_NAME"
+# Standard — creates worktree at .worktrees/<name> with matching branch
+bd worktree create .worktrees/<feature-name>
 
-git worktree add "$path" -b "$BRANCH_NAME"
-cd "$path"
+# With explicit branch name
+bd worktree create .worktrees/<feature-name> --branch <branch-name>
+
+# Then cd into it
+cd .worktrees/<feature-name>
 ```
 
-**Sandbox fallback:** If `git worktree add` fails with a permission error (sandbox denial), tell the user the sandbox blocked worktree creation and you're working in the current directory instead. Then run setup and baseline tests in place.
+**What `bd worktree create` does automatically:**
+1. Creates the git worktree with a new branch
+2. Worktree automatically discovers the main repo's beads database via git common directory (no redirect file needed)
+3. Adds worktree path to `.gitignore` (if inside repo root)
 
-## Step 2: Project Setup
+### 2. Run Project Setup
 
 Auto-detect and run appropriate setup:
 
@@ -118,20 +140,26 @@ if [ -f pyproject.toml ]; then poetry install; fi
 if [ -f go.mod ]; then go mod download; fi
 ```
 
-## Step 3: Verify Clean Baseline
+### 3. Verify Clean Baseline
 
-Run tests to ensure workspace starts clean:
+Run tests to ensure worktree starts clean:
 
 ```bash
-# Use project-appropriate command
-npm test / cargo test / pytest / go test ./...
+# Examples - use project-appropriate command
+npm test
+cargo test
+pytest
+go test ./...
 ```
 
-**If tests fail:** Report failures, ask whether to proceed or investigate.
+**If tests fail:** Report failures, then **use your structured question tool** to ask:
+  Question: "Baseline tests failing in worktree (<N> failures). How should I proceed?"
+  Options: "Investigate failures" (debug before starting feature work), "Proceed anyway" (start implementation despite pre-existing failures)
+  A skipped, dismissed, or auto-resolved answer is not consent — stop and ask in plain text.
 
 **If tests pass:** Report ready.
 
-### Report
+### 4. Report Location
 
 ```
 Worktree ready at <full-path>
@@ -139,29 +167,95 @@ Tests passing (<N> tests, 0 failures)
 Ready to implement <feature-name>
 ```
 
+## Multiple Worktrees for Parallel Subagents
+
+When Subagent-Driven Development runs independent tasks in parallel, the **orchestrator** creates and manages multiple worktrees. Subagents never create or destroy worktrees — they receive a path and work within it.
+
+**Pattern:**
+
+```bash
+# 1. Orchestrator creates epic worktree (once)
+bd worktree create .worktrees/<epic-name>
+
+# 2. For each parallel task (max 5 concurrent):
+bd worktree create .worktrees/<task-name> --branch feature/<epic>/<task>
+
+# 3. Subagent receives path in its prompt:
+#    "Work from: <task-worktree-path>"
+
+# 4. After task passes review — orchestrator merges and cleans up:
+cd .worktrees/<epic-name>
+git merge feature/<epic>/<task>
+bd worktree remove .worktrees/<task-name>
+# (if the safety check flags the local-only branch as unpushed, verify the merge landed, then add --force)
+```
+
+**Constraints:**
+- Maximum 5 concurrent task worktrees (resource limit)
+- Orchestrator manages the full lifecycle — subagents never run `bd worktree` commands
+- All task worktrees branch from the same HEAD commit (created before any subagent commits)
+- After merge, run the full test suite on the epic worktree to catch integration issues
+
+**See also:** `beads-superpowers:subagent-driven-development` → Parallel Batch Mode section for the full orchestration flow.
+
 ## Quick Reference
 
 | Situation | Action |
 |-----------|--------|
-| Already in linked worktree | Skip creation (Step 0) |
-| In a submodule | Treat as normal repo (Step 0 guard) |
-| Native worktree tool available | Use it (Step 1a) |
-| No native tool | Git worktree fallback (Step 1b) |
-| `.worktrees/` exists | Use it (verify ignored) |
-| `worktrees/` exists | Use it (verify ignored) |
-| Both exist | Use `.worktrees/` |
-| Neither exists | Check instruction file, then default `.worktrees/` |
-| Directory not ignored | Add to .gitignore + commit |
-| Permission error on create | Sandbox fallback, work in place |
+| Creating a worktree | `bd worktree create .worktrees/<name>` — handles path + .gitignore |
+| Different directory preferred by project CLAUDE.md | pass that path the same way |
+| Directory not ignored | Add to .gitignore + commit (edge case) |
 | Tests fail during baseline | Report failures + ask |
 | No package.json/Cargo.toml | Skip dependency install |
+| Parallel subagent work | Create one `bd worktree` per task, orchestrator manages lifecycle (max 5) |
+| Working across worktrees | `bd -C .worktrees/<name> ready` — run bd in a worktree without cd |
+| Permission error on worktree create | Sandbox blocks writes outside the repo — fall back to working in place; say so explicitly. If this fires during a parallel batch, run the remaining tasks sequentially — never parallel-dispatch into the shared tree |
 
-## Common Rationalizations
+## Example Workflow
 
-| Excuse | Reality |
-|--------|---------|
-| "I'm obviously not in a worktree — no need to check" | Run Step 0. Harness-created isolation and submodules both fool eyeballing; the detection commands settle it. |
-| "`git worktree add` is quicker than hunting for a native tool" | A native tool (e.g. `EnterWorktree`) owns placement, branching, and cleanup. Bypassing it is the #1 mistake — it creates phantom state your harness can't see or manage. |
-| "The worktree directory is surely ignored already" | Run `git check-ignore`. An unignored worktree directory commits the whole tree into the repo. |
-| "Any directory name works" | Explicit instructions beat an existing project-local directory, which beats the `.worktrees/` default. |
-| "The workspace is fresh — baseline tests can wait" | A dirty baseline makes every later failure ambiguous. Run the tests now; proceeding past failures is your human partner's call. |
+```
+You: I'm using the using-git-worktrees skill to set up an isolated workspace.
+
+[Create worktree: bd worktree create .worktrees/auth --branch feature/auth]
+  ✓ Created worktree at .worktrees/auth
+  ✓ Beads database shared via git common directory
+  ✓ Added to .gitignore
+[cd .worktrees/auth]
+[Run npm install]
+[Run npm test - 47 passing]
+
+Worktree ready at /Users/jesse/myproject/.worktrees/auth
+Tests passing (47 tests, 0 failures)
+Ready to implement auth feature
+```
+
+**Capture what you learned.** At close, record durable, evidence-backed insights (still true next month, tied to a file, test, or command). Never record guesses, one-offs, or secrets (tokens, keys, PII — every memory is injected into all future sessions). Update in place (`bd remember --key <key>`) rather than adding a near-duplicate.
+
+```bash
+bd remember "<kind>: <durable, evidence-backed insight>"   # kind: lesson / pattern / design / root-cause / research
+```
+
+## Red Flags
+
+**Never:**
+- Use raw `git worktree` commands — ALWAYS use `bd worktree`. If you catch yourself typing `git worktree`, stop and use `bd worktree` instead
+- Create worktree without verifying it's ignored (project-local) — worktree contents get tracked, pollute git status
+- Skip baseline test verification, or proceed with failing tests without asking — can't distinguish new bugs from pre-existing issues
+- Assume directory location when ambiguous, or skip CLAUDE.md check
+- Hardcode setup commands — breaks on projects using different tools
+
+**Always:**
+- Use `bd worktree create` / `bd worktree list` / `bd worktree remove`
+- Let `bd worktree create` handle path and `.gitignore`
+- Auto-detect and run project setup from project files (package.json, etc.)
+- Verify clean test baseline; report failures and get explicit permission to proceed
+
+## Integration
+
+**Invoked by:** Any task needing workspace isolation, or user on-demand.
+
+**Required by:**
+- **subagent-driven-development** — must create worktree before delegating to implementer subagents.
+- **executing-plans** — workspace isolation before starting plan execution.
+
+**Pairs with:** **subagent-driven-development** — parallel batch mode creates multiple worktrees (one per task) for concurrent subagent execution.

@@ -13,10 +13,16 @@ Assume they are a skilled developer, but know almost nothing about our toolset o
 
 **Announce at start:** "I'm using the writing-plans skill to create the implementation plan."
 
-**Context:** If working in an isolated worktree, it should have been created via the `superpowers:using-git-worktrees` skill at execution time.
+**Production-Grade Doctrine:** every spec requirement MUST map to a task — a deliberate cut is surfaced as a tracked decision, never a silent omission. Never weaken, bypass, or remove a security control — a security regression is never acceptable.
 
-**Save plans to:** `docs/superpowers/plans/YYYY-MM-DD-<feature-name>.md`
+**Context:** This should be run in a dedicated worktree (created by brainstorming skill).
+
+**Save plans to:** `.internal/plans/YYYY-MM-DD-<feature-name>.md`
 - (User preferences for plan location override this default)
+
+## Knowledge Check
+
+Before writing tasks, query the knowledge store: `bd list --label <topic> --status all` + `bd search "<keywords>" --status all` + `bd memories <keyword>` (the memory half — lessons, patterns, root-causes; knowledge-beads alone miss it entirely). Then read — hits are pointers, not knowledge: `bd show <id1> <id2> ...` / `bd recall <key>` for every hit that plausibly bears on this plan. Emit `KB check: N bead hits, M memory hits, K read` plus a one-line disposition per read hit — folded into a task (which one) or ruled out (why).
 
 ## Scope Check
 
@@ -42,6 +48,8 @@ deliverable needs them; split only where a reviewer could meaningfully
 reject one task while approving its neighbor. Each task ends with an
 independently testable deliverable.
 
+In beads terms, a right-sized task is one bead (`bd create -t task --parent <epic-id>`): claimable, verifiable, and closeable on its own.
+
 ## Bite-Sized Task Granularity
 
 **Each step is one action (2-5 minutes):**
@@ -58,7 +66,7 @@ independently testable deliverable.
 ```markdown
 # [Feature Name] Implementation Plan
 
-> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
+> **For agentic workers:** REQUIRED SUB-SKILL: Use beads-superpowers:subagent-driven-development (recommended) or beads-superpowers:executing-plans to implement this plan task-by-task. Each Task becomes a bead (`bd create -t task --parent <epic-id>`). Steps within tasks use checkbox (`- [ ]`) syntax for human readability.
 
 **Goal:** [One sentence describing what this builds]
 
@@ -91,6 +99,10 @@ include this section.]
 - Produces: [what later tasks rely on — exact function names, parameter
   and return types. A task's implementer sees only their own task; this
   block is how they learn the names and types neighboring tasks use.]
+
+**Acceptance Criteria:**
+- [Observable, testable outcomes — copied verbatim into the task bead's
+  `## Acceptance Criteria` section at creation]
 
 - [ ] **Step 1: Write the failing test**
 
@@ -125,6 +137,12 @@ git commit -m "feat: add specific feature"
 ```
 ````
 
+**Beads integration:** When executing this plan, the executing skill creates an epic bead for the plan and a child task bead for each Task N. The `- [ ]` checkboxes remain in the markdown for human readability, but task-level tracking uses beads (`bd create`, `bd update --claim`, `bd close --reason`). Dependencies between tasks should be declared with `bd dep add`.
+
+**Atomic creation:** the executing skill creates the epic + tasks via `bd import` (JSONL) — `bd create` the epic, then `bd import -` the tasks (each with a `parent-child` dep to the epic and rich fields), then `bd batch` any inter-task `blocks` ordering. Not a sequential create-loop. The exact kernel lives in the executing skill (subagent-driven-development / executing-plans).
+
+**Required bead-body sections:** `bd lint` (Self-Review step 0) requires `## Success Criteria` in the epic bead's description and `## Acceptance Criteria` in each task bead's description. Include them at creation time — embed them in each bead's `description` in the import JSONL (or use the `acceptance_criteria` field). The epic's Success Criteria derive from the plan's **Goal**; each task's copy from its **Acceptance Criteria** block.
+
 ## No Placeholders
 
 Every step must contain the actual content an engineer needs. These are **plan failures** — never write them:
@@ -139,7 +157,15 @@ Every step must contain the actual content an engineer needs. These are **plan f
 
 After writing the complete plan, look at the spec with fresh eyes and check the plan against it. This is a checklist you run yourself — not a subagent dispatch.
 
-**1. Spec coverage:** Skim each section/requirement in the spec. Can you point to a task that implements it? List any gaps.
+**0. Deterministic checks:** Run these commands and fix anything they flag before proceeding to the judgment checks below:
+
+```bash
+bd lint <epic-id>                                                    # required-section check on the epic
+bd list --parent <epic-id> --json | jq -r '.[].id' | xargs -n1 bd lint   # same check on each child task
+bd ready --parent <epic-id> --explain                                # confirm dependency ordering
+```
+
+**1. Spec coverage:** Skim each requirement in the spec. Every one MUST map to a task — point to it. A requirement with no task is either added as a task or surfaced to the user as an explicit, acknowledged cut. Silent omission is a plan failure.
 
 **2. Placeholder scan:** Search your plan for red flags — any of the patterns from the "No Placeholders" section above. Fix them.
 
@@ -147,22 +173,112 @@ After writing the complete plan, look at the spec with fresh eyes and check the 
 
 If you find issues, fix them inline. No need to re-review — just fix and move on. If you find a spec requirement with no task, add the task.
 
+## User Review Gate
+
+After self-review passes, **open the plan file in the user's editor** so they can review it, then gate progression with your structured question tool (content below; shape shown in Claude Code schema — adapt to your tool):
+
+**User's preferred editor:** !`echo ${VISUAL:-${EDITOR:-not-configured}}`
+
+**⚠️ Run the open command as a standalone Bash call** — never chain it after `bd` commands in the same invocation (e.g., `bd close <id> && open file.md`). The combination hangs.
+
+```bash
+# Open in user's preferred editor, with platform fallbacks
+if [ -n "$VISUAL" ]; then
+  "$VISUAL" "<plan-file-path>"
+elif [ -n "$EDITOR" ]; then
+  "$EDITOR" "<plan-file-path>"
+elif command -v open >/dev/null 2>&1; then
+  open "<plan-file-path>"
+else
+  xdg-open "<plan-file-path>" 2>/dev/null
+fi
+# If none available: just report the path
+```
+
+Then immediately ask via your structured question tool (content below; shape shown in Claude Code schema — adapt to your tool):
+
+<!-- Canonical 3-option stress-test gate — keep identical to brainstorming/SKILL.md -->
+
+```json
+{
+  "questions": [{
+    "question": "Plan opened in your editor at `<path>`. Review it and let me know how to proceed.",
+    "header": "Plan review",
+    "options": [
+      {"label": "Approved + stress-test (Recommended)", "description": "Plan looks good — run an adversarial stress-test before execution"},
+      {"label": "Approved", "description": "Plan looks good — skip stress-test and proceed to choose execution method"},
+      {"label": "Needs changes", "description": "I want to revise the plan before proceeding"}
+    ],
+    "multiSelect": false
+  }]
+}
+```
+
+Route on the answer:
+- **Approved + stress-test** → invoke the `stress-test` skill with the plan path (`.internal/plans/YYYY-MM-DD-<feature-name>.md`) as the Mode-A artifact; when it completes, proceed to **Execution Handoff**.
+- **Approved** → proceed to **Execution Handoff** directly.
+- **Needs changes** → make the requested changes and re-run the self-review. Only proceed once approved.
+
+> When filing a bead for discovered/follow-up work, stamp it per **Agent-Filed Bead Discipline** (`verification-before-completion`).
+
+After the work is settled, present the Capture gate — mandatory every time; Skip is the default (most work leaves nothing worth keeping):
+
+```json
+{
+  "questions": [{
+    "question": "Worth keeping anything from this?",
+    "header": "Capture",
+    "options": [
+      {"label": "Skip", "description": "Nothing here outlasts the work itself (usually the case)"},
+      {"label": "Record the decision", "description": "Pick this if the choice is hard to undo, non-obvious in hindsight, and had real trade-offs — so future-you knows why"},
+      {"label": "Remember the lesson", "description": "A specific, evidence-backed lesson worth reusing in later sessions"},
+      {"label": "Both", "description": "A lasting decision and a lesson worth reusing"}
+    ],
+    "multiSelect": false
+  }]
+}
+```
+
+Route on the answer. **Record the decision / Both** → this writes an ADR, so first confirm it clears the bar (hard-to-reverse AND surprising-without-context AND genuine trade-off); if it doesn't, say so and capture it as a memory instead (the lighter record) — unless the user confirms they want the full ADR. Write the ADR (`docs/decisions/ADR-NNNN-<kebab>.md`, sections Context/Decision/Rationale/Consequences, update `docs/decisions/INDEX.md`), then file a `type=decision` knowledge-bead so the decision stays retrievable: `printf '%s' "<distilled 0.5-2.5KB decision summary — context, decision, consequences>" | bd create "<one-line summary>" -t decision -l kb,adr-process,<topic> --defer 2099-01-01 --metadata "$(jq -nc --arg d "<ADR-path>" '{doc:$d}')" --body-file - --silent` (run the secret/PII scan on the summary first — flag for removal, never write a secret into a bead). **Remember the lesson / Both** → `bd remember "<kind>: <durable, evidence-backed insight>"`. **Skip** → nothing.
+
 ## Execution Handoff
 
-After saving the plan, offer execution choice:
+After the plan is approved, **use your structured question tool** to offer the execution choice:
 
-**"Plan complete and saved to `docs/superpowers/plans/<filename>.md`. Two execution options:**
-
-**1. Subagent-Driven (recommended)** - I dispatch a fresh subagent per task, review between tasks, fast iteration
-
-**2. Inline Execution** - Execute tasks in this session using executing-plans, batch execution with checkpoints
-
-**Which approach?"**
+```json
+{
+  "questions": [{
+    "question": "Plan complete and saved. How would you like to execute it?",
+    "header": "Execution",
+    "options": [
+      {
+        "label": "Subagent-Driven (Recommended)",
+        "description": "Fresh subagent per task with a single task review between tasks — fast iteration, high quality"
+      },
+      {
+        "label": "Inline Execution",
+        "description": "Execute tasks in this session using executing-plans — batch execution with checkpoints"
+      }
+    ],
+    "multiSelect": false
+  }]
+}
+```
 
 **If Subagent-Driven chosen:**
-- **REQUIRED SUB-SKILL:** Use superpowers:subagent-driven-development
-- Fresh subagent per task + two-stage review
+- **REQUIRED SUB-SKILL:** Use beads-superpowers:subagent-driven-development
+- Fresh subagent per task + single task review (spec + quality verdicts)
 
 **If Inline Execution chosen:**
-- **REQUIRED SUB-SKILL:** Use superpowers:executing-plans
+- **REQUIRED SUB-SKILL:** Use beads-superpowers:executing-plans
 - Batch execution with checkpoints for review
+
+## Integration
+
+**Called by:** **brainstorming** — this is brainstorming's terminal state. After design approval, brainstorming invokes writing-plans.
+
+**Invokes:**
+- **subagent-driven-development** — execution handoff (user choice).
+- **executing-plans** — execution handoff (user choice).
+
+**Pairs with:** **stress-test** — offered at the plan-review gate every time (the "Approved + stress-test" option), before execution.

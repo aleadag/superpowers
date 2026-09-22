@@ -9,7 +9,7 @@ description: Use when facing 2+ independent tasks that can be worked on without 
 
 You delegate tasks to specialized agents with isolated context. By precisely crafting their instructions and context, you ensure they stay focused and succeed at their task. They should never inherit your session's context or history — you construct exactly what they need. This also preserves your own context for coordination work.
 
-When you have multiple unrelated failures (different test files, different subsystems, different bugs), investigating them sequentially wastes time. Each investigation is independent and can happen in parallel.
+When you have multiple independent tasks — whether bug investigations, plan tasks, or subsystem changes — executing them sequentially wastes time. Each task is independent and can happen in parallel, provided each agent gets its own isolated workspace.
 
 **Core principle:** Dispatch one agent per independent problem domain. Let them work concurrently.
 
@@ -38,6 +38,8 @@ digraph when_to_use {
 - Multiple subsystems broken independently
 - Each problem can be understood without context from others
 - No shared state between investigations
+- 2+ independent plan tasks with no dependency edges between them
+- Multiple independent subsystem changes (different files, different concerns)
 
 **Don't use when:**
 - Failures are related (fix one might fix others)
@@ -55,6 +57,15 @@ Group failures by what's broken:
 
 Each domain is independent - fixing tool approval doesn't affect abort tests.
 
+### Before you fan out (orchestrator-only)
+
+Worktrees isolate *files*, not *assumptions* — parallel agents on different files can still diverge on an un-prescribed shared decision (MAST FC2). Before dispatching:
+
+1. **Front-load shared decisions** — list every decision ≥2 agents depend on (schemas, naming, interfaces, conventions); decide each once and write it verbatim into *every* agent prompt.
+2. **Share full context, not summaries** — give each agent the relevant traces/facts, not a lossy digest.
+
+This is orchestrator discipline applied before dispatch; do not ask subagents to coordinate with each other.
+
 ### 2. Create Focused Agent Tasks
 
 Each agent gets:
@@ -65,16 +76,11 @@ Each agent gets:
 
 ### 3. Dispatch in Parallel
 
-Issue all three subagent dispatches in the same response — they run in parallel:
+**Subagent (general-purpose):**
 
-```text
-Subagent (general-purpose): "Fix agent-tool-abort.test.ts failures"
-Subagent (general-purpose): "Fix batch-completion-behavior.test.ts failures"
-Subagent (general-purpose): "Fix tool-approval-race-conditions.test.ts failures"
-# All three run concurrently.
-```
+> <task-specific prompt — the subagent sees only this, so it must be self-sufficient>
 
-Multiple dispatch calls in one response = parallel execution. One per response = sequential.
+**Multiple dispatch calls in one response = parallel execution. One per response = sequential.**
 
 ### 4. Review and Integrate
 
@@ -132,6 +138,57 @@ Return: Summary of what you found and what you fixed.
 **Need full context:** Understanding requires seeing entire system
 **Exploratory debugging:** You don't know what's broken yet
 **Shared state:** Agents would interfere (editing same files, using same resources)
+**Single task:** Only one task remaining — no parallelism benefit
+**Same files:** Tasks that modify the same files — merge conflicts likely even with worktree isolation
+
+## Integration
+
+**Invoked by:**
+- **subagent-driven-development** — parallel batch mode dispatches independent plan tasks concurrently, each in its own worktree. Uses this skill's dispatch pattern. See SDD Integration below.
+- **getting-up-to-speed** — heavy path (150+ tracked files) dispatches two read-only survey subagents in parallel via this pattern.
+
+**Invokes:** None — this is a dispatch pattern skill, not a pipeline skill.
+
+## SDD Integration
+
+Subagent-Driven Development uses this skill's **pattern** — not the skill itself — when executing plans with independent tasks.
+
+**How SDD uses the pattern:**
+
+1. SDD detects independent task batches via `bd ready --parent <epic-id>` (tasks with no unresolved dependencies)
+2. Orchestrator creates one `bd worktree` per task — subagent receives path, never creates worktrees itself
+3. Dispatches all implementer subagents in one message via multiple dispatch calls (max 5 per batch)
+4. SDD handles merge-back into the epic worktree after review
+
+**Key difference from standalone use:** In SDD, the orchestrator manages the full lifecycle (worktree creation → dispatch → review → merge → cleanup). This skill describes the dispatch pattern; SDD adds the orchestration layer.
+
+**Example — plan task execution with per-task worktrees:**
+
+```
+Orchestrator identifies 3 unblocked tasks (no deps between them):
+  Task A: Add validation to user input (touches src/validation.py)
+  Task B: Add logging middleware (touches src/middleware.py)
+  Task C: Update API docs (touches docs/api.md)
+
+Orchestrator creates per-task worktrees:
+  bd worktree create .worktrees/task-a --branch feature/epic/task-a
+  bd worktree create .worktrees/task-b --branch feature/epic/task-b
+  bd worktree create .worktrees/task-c --branch feature/epic/task-c
+
+Dispatches 3 subagents in parallel (one dispatch call each, same message):
+  Subagent 1 → "Work from: .worktrees/task-a" → implements validation
+  Subagent 2 → "Work from: .worktrees/task-b" → implements middleware
+  Subagent 3 → "Work from: .worktrees/task-c" → updates docs
+
+After all 3 pass review:
+  git merge feature/epic/task-a (in epic worktree)
+  git merge feature/epic/task-b
+  git merge feature/epic/task-c
+  bd worktree remove .worktrees/task-a .worktrees/task-b .worktrees/task-c
+  Run full test suite → integration check
+```
+
+> **Concurrent orchestrators (optional — `bd merge-slot`):** The merges above are run by a single orchestrator, one at a time, so there is no merge race in the normal flow. If two or more orchestrators or sessions ever run this pattern concurrently against the same repo, serialize their merges with the beads v1.0.5 merge slot: `bd merge-slot create` once, then `bd merge-slot acquire` before each `git merge` and `bd merge-slot release` after — so only one orchestrator resolves conflicts at a time.
 
 ## Real Example from Session
 
@@ -165,3 +222,10 @@ After agents return:
 2. **Check for conflicts** - Did agents edit same code?
 3. **Run full suite** - Verify all fixes work together
 4. **Spot check** - Agents can make systematic errors
+5. **No weakening to "pass"** - An agent may not satisfy its narrow goal by weakening tests, dropping a requirement, or regressing security — verify this on integration (Production-Grade Doctrine)
+
+**Capture what you learned.** At close, record durable, evidence-backed insights (still true next month, tied to a file, test, or command). Never record guesses, one-offs, or secrets (tokens, keys, PII — every memory is injected into all future sessions). Update in place (`bd remember --key <key>`) rather than adding a near-duplicate.
+
+```bash
+bd remember "<kind>: <durable, evidence-backed insight>"   # kind: lesson / pattern / design / root-cause / research
+```
