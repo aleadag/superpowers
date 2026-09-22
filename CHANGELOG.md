@@ -4,10 +4,14 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
-> **Forked from:** [obra/superpowers](https://github.com/obra/superpowers) v5.0.7 (2026-03-31)
-> **Beads integration based on:** [gastownhall/beads](https://github.com/gastownhall/beads) v1.0.4 (2026-05-09)
+> **Forked from:** [obra/superpowers](https://github.com/obra/superpowers) v6.4.1
+> **Beads integration based on:** [gastownhall/beads](https://github.com/gastownhall/beads) v1.1.2
 
 ## [Unreleased]
+
+## [bsp-6.4.1] - 2026-09-22
+
+Version scheme is now `bsp-<superpowers>` so the product tracks the Superpowers tag it is merged from. This release is Superpowers v6.4.1 on the beads delta (`diagnosing-superpowers`, Native plan execution, Hermes/Muse/Devin, SDD ledger) with beads kept in the live path.
 
 ## [0.16.0] - 2026-07-27
 

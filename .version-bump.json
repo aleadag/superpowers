@@ -31,6 +31,18 @@
     {
       "path": "gemini-extension.json",
       "key": "version"
+    },
+    {
+      "path": ".devin-plugin/plugin.json",
+      "key": "version"
+    },
+    {
+      "path": ".muse-plugin/plugin.json",
+      "key": "version"
+    },
+    {
+      "path": ".muse-plugin/marketplace.json",
+      "key": "plugins[0].version"
     }
   ],
   "prose": [

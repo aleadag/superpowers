@@ -301,7 +301,7 @@ except:
 
 resolve_version() {
   if [ -n "$FLAG_SOURCE" ]; then
-    VERSION=$(grep -m1 '"version"' "$FLAG_SOURCE/package.json" 2>/dev/null | sed -E 's/.*"([0-9][^"]*)".*/\1/')
+    VERSION=$(grep -m1 '"version"' "$FLAG_SOURCE/package.json" 2>/dev/null | sed -E 's/.*"((bsp-)?[0-9][^"]*)".*/\1/')
     [ -z "$VERSION" ] && { error "--source: cannot read version from $FLAG_SOURCE/package.json"; exit 1; }
     info "Version $VERSION (from --source checkout)"
     return 0

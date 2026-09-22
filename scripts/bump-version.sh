@@ -274,9 +274,9 @@ cmd_audit() {
 cmd_bump() {
   local new_version="$1"
 
-  # Validate semver-ish format
-  if ! echo "$new_version" | grep -qE '^[0-9]+\.[0-9]+\.[0-9]+'; then
-    echo "error: '$new_version' doesn't look like a version (expected X.Y.Z)" >&2
+  # Validate semver-ish, or beads fork tag bsp-X.Y.Z (tracks Superpowers X.Y.Z)
+  if ! echo "$new_version" | grep -qE '^(bsp-)?[0-9]+\.[0-9]+\.[0-9]+'; then
+    echo "error: '$new_version' doesn't look like a version (expected X.Y.Z or bsp-X.Y.Z)" >&2
     exit 1
   fi
 
