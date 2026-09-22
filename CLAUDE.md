@@ -180,6 +180,7 @@ This plugin uses `bd` (beads) for ALL task tracking.
 | project-init                   | Beads/Dolt DB setup, bootstrap, and recovery                                                                                |
 | dispatching-parallel-agents    | 2+ independent tasks without shared state                                                                                   |
 | auditing-upstream-drift (maintainer-only — `.claude/skills/`, not distributed) | Detect staleness vs upstream superpowers/beads                             |
+| merging-upstream-superpowers (maintainer-only — `.claude/skills/`, not distributed) | Git-merge an obra/superpowers tag onto `beads`                          |
 | getting-up-to-speed            | Session orientation — reads latest session-handoff doc + bd context + adaptive codebase deep-dive + structured current-state summary |
 | research-driven-development    | Parallel research agents → blinded citation-grounding verify → synthesized knowledge base document. Triggers on "research this", "what is X", "how does Y work" |
 | write-documentation            | Human-quality prose for all human-facing text — 14-rule writing system with context-first drafting and required checks      |
@@ -287,4 +288,4 @@ The `example-workflow/` directory provides a ready-to-use development workflow:
 | [mattpocock/skills](https://github.com/mattpocock/skills) `productivity/handoff` | snapshot 2026-07-17 | session-handoff skill lineage |
 | [Anbeeld/WRITING.md](https://github.com/Anbeeld/WRITING.md) | v1.3.1 (verified current 2026-06-26) | write-documentation writing system |
 
-Use the `auditing-upstream-drift` skill (maintainer-only — `.claude/skills/auditing-upstream-drift/SKILL.md`, not distributed) to check for staleness.
+Use the `auditing-upstream-drift` skill (maintainer-only — `.claude/skills/auditing-upstream-drift/SKILL.md`, not distributed) to check for staleness. Merge an obra/superpowers tag with `merging-upstream-superpowers` (same class — `.claude/skills/merging-upstream-superpowers/SKILL.md`, not distributed).

@@ -103,6 +103,25 @@ else
   bad "AGENTS.md is not a git symlink to CLAUDE.md"
 fi
 
+PLAYBOOK="$ROOT/.claude/skills/merging-upstream-superpowers/SKILL.md"
+if [ -f "$PLAYBOOK" ]; then
+  pass "maintainer-only merge playbook exists"
+  if sed -n '/^KNOWN_SKILLS=(/,/^)/p' "$ROOT/install.sh" | grep -q 'merging-upstream-superpowers'; then
+    bad "merge playbook leaked into install.sh KNOWN_SKILLS"
+  else
+    pass "merge playbook is not in KNOWN_SKILLS"
+  fi
+  for id in superpowers-cm3 superpowers-8j5 superpowers-31y superpowers-ev2; do
+    if grep -qF "$id" "$PLAYBOOK"; then
+      pass "playbook points at $id"
+    else
+      bad "playbook does not point at $id"
+    fi
+  done
+else
+  bad "missing maintainer-only merge playbook ($PLAYBOOK)"
+fi
+
 # --- mutations (must be RED) — prove the pins catch the overlay failure mode ---
 TMP=$(mktemp -d)
 trap 'rm -rf "$TMP"' EXIT
