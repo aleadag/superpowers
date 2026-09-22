@@ -163,6 +163,7 @@ This plugin uses `bd` (beads) for ALL task tracking.
 | Skill                          | Purpose                                                                                                                     |
 | ------------------------------ | --------------------------------------------------------------------------------------------------------------------------- |
 | using-superpowers              | Bootstrap — loaded at session start, routes to other skills                                                                 |
+| diagnosing-superpowers         | Find which Superpowers skill applies, then invoke it                                                                        |
 | brainstorming                  | Socratic design before code — creates session beads                                                                         |
 | stress-test                    | Adversarial design interrogation with recommended answers                                                                   |
 | writing-plans                  | Bite-sized task plans — each task becomes a bead                                                                            |

@@ -73,3 +73,10 @@ issues.jsonl
 # cache
 .cache/
 npx-testing/
+
+# Superpowers 6.4.1 extras
+.private-journal/
+.superpowers/
+inspo
+triage/
+evals/

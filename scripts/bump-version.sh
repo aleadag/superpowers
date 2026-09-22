@@ -40,6 +40,51 @@ write_json_field() {
   jq "$jq_path = \"$value\"" "$file" > "$tmp" && mv "$tmp" "$file"
 }
 
+require_tool() {
+  command -v "$1" >/dev/null 2>&1 || {
+    echo "error: required tool '$1' is not on PATH" >&2
+    return 1
+  }
+}
+
+read_yaml_field() {
+  local file="$1" field="$2"
+  require_tool yq || return 1
+  FIELD="$field" yq -er '.[strenv(FIELD)] | select(tag == "!!str")' "$file"
+}
+
+write_yaml_field() {
+  local file="$1" field="$2" value="$3"
+  FIELD="$field" VALUE="$value" \
+    yq -i '.[strenv(FIELD)] = strenv(VALUE)' "$file"
+}
+
+read_manifest_field() {
+  local file="$1"
+
+  case "$file" in
+    *.json) read_json_field "$@" ;;
+    *.yaml) read_yaml_field "$@" ;;
+    *)
+      echo "error: unsupported manifest format: $file" >&2
+      return 1
+      ;;
+  esac
+}
+
+write_manifest_field() {
+  local file="$1"
+
+  case "$file" in
+    *.json) write_json_field "$@" ;;
+    *.yaml) write_yaml_field "$@" ;;
+    *)
+      echo "error: unsupported manifest format: $file" >&2
+      return 1
+      ;;
+  esac
+}
+
 # Read the list of declared files from config.
 # Outputs lines of "path<TAB>field"
 declared_files() {
@@ -74,6 +119,21 @@ write_prose_field() {
   ' "$file" > "$tmp" && mv "$tmp" "$file"
 }
 
+preflight_manifests() {
+  local path field fullpath
+
+  require_tool jq || return 1
+  while IFS=$'\t' read -r path field; do
+    fullpath="$REPO_ROOT/$path"
+    [[ -f "$fullpath" ]] || continue
+
+    if ! read_manifest_field "$fullpath" "$field" >/dev/null; then
+      echo "error: cannot read declared manifest: $path ($field)" >&2
+      return 1
+    fi
+  done < <(declared_files)
+}
+
 # Read the audit exclude patterns from config.
 audit_excludes() {
   jq -r '.audit.exclude[]' "$CONFIG" 2>/dev/null
@@ -96,7 +156,7 @@ cmd_check() {
       continue
     fi
     local ver
-    ver=$(read_json_field "$fullpath" "$field")
+    ver=$(read_manifest_field "$fullpath" "$field")
     printf "  %-45s  %s\n" "$path ($field)" "$ver"
     versions+=("$ver")
   done < <(declared_files)
@@ -146,7 +206,7 @@ cmd_audit() {
   current_version=$(
     while IFS=$'\t' read -r path field; do
       local fullpath="$REPO_ROOT/$path"
-      [[ -f "$fullpath" ]] && read_json_field "$fullpath" "$field"
+      [[ -f "$fullpath" ]] && read_manifest_field "$fullpath" "$field"
     done < <(declared_files) | sort | uniq -c | sort -rn | head -1 | awk '{print $2}'
   )
 
@@ -220,6 +280,8 @@ cmd_bump() {
     exit 1
   fi
 
+  preflight_manifests
+
   echo "Bumping all declared files to $new_version..."
   echo ""
 
@@ -230,8 +292,8 @@ cmd_bump() {
       continue
     fi
     local old_ver
-    old_ver=$(read_json_field "$fullpath" "$field")
-    write_json_field "$fullpath" "$field" "$new_version"
+    old_ver=$(read_manifest_field "$fullpath" "$field")
+    write_manifest_field "$fullpath" "$field" "$new_version"
     printf "  %-45s  %s -> %s\n" "$path ($field)" "$old_ver" "$new_version"
   done < <(declared_files)
 
