@@ -18,7 +18,7 @@ done
 grep -q ":local$" "$SANDBOX/skills/.beads-superpowers-version" \
   || { echo "FAIL: version file missing ':local' tier"; fail=1; }
 # Version came from package.json, not a network resolve
-v=$(grep -m1 '"version"' "$REPO_ROOT/package.json" | sed -E 's/.*"([0-9][^"]*)".*/\1/')
+v=$(python3 -c 'import json, sys; print(json.load(sys.stdin)["version"])' < "$REPO_ROOT/package.json")
 grep -q "^${v}:" "$SANDBOX/skills/.beads-superpowers-version" \
   || { echo "FAIL: version file does not start with package.json version $v"; fail=1; }
 

@@ -40,11 +40,11 @@ Using a different agent? Jump to install for [Codex CLI](#codex-cli), [OpenCode]
 
 1. **research-driven-development** - When the task needs understanding first: parallel research agents investigate and write a verified knowledge-base document before any design happens.
 
-2. **brainstorming** - Refines the idea through one-question-at-a-time design dialogue, checks prior decisions in the knowledge store, and ends with a spec you approved - tracked in `bd` so it survives the session.
+2. **brainstorming** - Draws out what you want and why, checks prior knowledge, and plays back its understanding. Small changes get agreed in chat; projects get a written design and builder check. Progress stays in `bd`.
 
 3. **stress-test** - Adversarially interrogates the approved spec branch by branch (offered at every spec review), so flaws surface before planning.
 
-4. **writing-plans** - Turns the spec into bite-sized tasks with exact files, code, and verification steps. Every task becomes a `bd` bead.
+4. **writing-plans** - Turns the spec into bite-sized tasks with exact files, interfaces, test assertions, and verification steps, without writing the implementation in advance. Every task becomes a `bd` bead.
 
 5. **stress-test** (again) - The same adversarial pass against the plan itself: task boundaries, parallel-safety, failure modes.
 
@@ -75,6 +75,7 @@ The agent checks for relevant skills before any task - these are mandatory workf
 | Skill | What it does |
 |-------|-------------|
 | `systematic-debugging` | 4-phase root-cause analysis before proposing any fix |
+| `diagnosing-superpowers` | Explains a failed skills session from transcript evidence and can prepare a scrubbed bug report |
 | `verification-before-completion` | Evidence before claims - nothing is "done" until a command proved it |
 
 ### Design & planning
@@ -230,7 +231,7 @@ Run `/new` after install to start a fresh session with the plugin active.
 agy plugin install https://github.com/DollarDill/beads-superpowers
 ```
 
-Note: reuses the Claude plugin manifest - the same mechanism upstream verified.
+Uses the native Antigravity Marketplace manifest. Antigravity discovers skills through their descriptions; it has no session-start hook. This remains best-effort support: its validator currently warns that the SDD and write-documentation skills exceed its 24,000-byte body limit.
 
 ### Factory Droid
 

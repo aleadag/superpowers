@@ -6,9 +6,19 @@
 
 set -euo pipefail
 
-# Determine plugin root directory
-SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+# Resolve Unix or Windows hook paths without looking up dirname on PATH.
+case "$0" in
+  */*|*\\*) SCRIPT_DIR="$(cd "${0%[/\\]*}" && pwd)" ;;
+  *) SCRIPT_DIR="$(pwd)" ;;
+esac
 PLUGIN_ROOT="$(cd "${SCRIPT_DIR}/.." && pwd)"
+
+# A broken startup PATH must not prevent the skill bootstrap. Beads composition
+# and event dedup need external tools; defer those when the tools are unavailable.
+bsp_tools_available=1
+for bsp_tool in sed tr cut id mkdir chmod find touch grep wc sort tail awk cat; do
+    command -v "$bsp_tool" >/dev/null 2>&1 || bsp_tools_available=0
+done
 
 BSP_MEM_CEILING=1550
 # Gates the COMPOSED entry (body + "### <key>\n" header + "\n\n" scaffolding —
@@ -152,6 +162,7 @@ done
 # Read hook stdin JSON if present. Bounded on both axes — 2s per read, 64KB total —
 # so a TTY, a never-closing pipe, or a firehose can never hang or bloat the hook
 # (bash builtin read only; no coreutils-timeout dependency).
+if [ "$bsp_tools_available" = "1" ]; then
 bsp_stdin=""
 if [ ! -t 0 ]; then
     bsp_line=""
@@ -210,6 +221,8 @@ NET
     fi
 fi
 
+fi # external-tool-dependent dedup and bd safety net
+
 # Check if legacy skills directory exists and build warning
 warning_message_raw=""
 legacy_skills_dir="${HOME}/.config/superpowers/skills"
@@ -227,14 +240,19 @@ for settings_file in \
     ".claude/settings.local.json" \
     "${HOME}/.claude/settings.json" \
     "${HOME}/.claude/settings.local.json"; do
-    if [ -f "$settings_file" ] 2>/dev/null && grep -q '"bd prime"' "$settings_file" 2>/dev/null; then
+    if [ "$bsp_tools_available" = "1" ] && [ -f "$settings_file" ] 2>/dev/null && grep -q '"bd prime"' "$settings_file" 2>/dev/null; then
         bd_prime_already_hooked=1
         break
     fi
 done
 
-# Read using-superpowers content
-using_superpowers_content=$(cat "${PLUGIN_ROOT}/skills/using-superpowers/SKILL.md" 2>/dev/null) || using_superpowers_content="beads-superpowers: using-superpowers skill unreadable"
+# Bash's builtin file read works even with an empty PATH.
+skill_md="${PLUGIN_ROOT}/skills/using-superpowers/SKILL.md"
+if [ -r "$skill_md" ]; then
+    using_superpowers_content="$(<"$skill_md")"
+else
+    using_superpowers_content="beads-superpowers: using-superpowers skill unreadable"
+fi
 
 # Escape string for JSON embedding using bash parameter substitution.
 escape_for_json() {
@@ -264,7 +282,7 @@ ${warning_message_raw}
 # in the caller; bsp_compose_memories keeps its plain <ceiling> signature.
 # (Skipped if an external bd prime hook owns injection.)
 beads_context=""
-if [ "$bd_prime_already_hooked" -eq 0 ] && command -v bd &>/dev/null && bd memories --json >/dev/null 2>&1; then
+if [ "$bsp_tools_available" = "1" ] && [ "$bd_prime_already_hooked" -eq 0 ] && command -v bd &>/dev/null && bd memories --json >/dev/null 2>&1; then
     bsp_pointer="$(bsp_bd_pointer)"
     bsp_allowance=$(( BSP_ENVELOPE_BUDGET - $(printf '%s' "$session_context_raw" | wc -c) \
                       - $(printf '%s' "$bsp_pointer" | wc -c) - BSP_WRAP_OVERHEAD ))
@@ -291,18 +309,29 @@ fi
 # CLAUDE_PROJECT_DIR covers settings.json-registered hooks (Claude Code sets it
 # on every hook invocation; plugin-channel invocations also get CLAUDE_PLUGIN_ROOT).
 # Copilot CLI (v1.0.11+) and others expect additionalContext (top-level, SDK standard).
+# When available, cat absorbs Git Bash's printf EPIPE diagnostic (#1612).
+# Fall back to builtin printf when PATH is broken (#2310).
+emit_json() {
+  # shellcheck disable=SC2059 # callers pass literal format strings
+  if command -v cat >/dev/null 2>&1; then
+    printf "$@" | cat
+  else
+    printf "$@"
+  fi
+}
+
 if [ "$BSP_EMIT_PLAIN" = "1" ]; then
   printf '%s\n' "$session_context_raw"
 elif [ -n "${CURSOR_PLUGIN_ROOT:-}" ]; then
-  printf '{\n  "additional_context": "%s"\n}\n' "$(escape_for_json "$session_context_raw")"
+  emit_json '{\n  "additional_context": "%s"\n}\n' "$(escape_for_json "$session_context_raw")"
 elif { [ -n "${CLAUDE_PLUGIN_ROOT:-}" ] || [ -n "${CODEX_PLUGIN_ROOT:-}" ] || [ -n "${CLAUDE_PROJECT_DIR:-}" ]; } && [ -z "${COPILOT_CLI:-}" ]; then
-  printf '{\n  "hookSpecificOutput": {\n    "hookEventName": "SessionStart",\n    "additionalContext": "%s"\n  }\n}\n' "$(escape_for_json "$session_context_raw")"
+  emit_json '{\n  "hookSpecificOutput": {\n    "hookEventName": "SessionStart",\n    "additionalContext": "%s"\n  }\n}\n' "$(escape_for_json "$session_context_raw")"
 else
-  printf '{\n  "additionalContext": "%s"\n}\n' "$(escape_for_json "$session_context_raw")"
+  emit_json '{\n  "additionalContext": "%s"\n}\n' "$(escape_for_json "$session_context_raw")"
 fi
 
-# bd-absent hint (non-fatal, one line to stderr)
-if ! command -v bd >/dev/null 2>&1; then
+# Only diagnose a missing bd when PATH can resolve the other prerequisites.
+if [ "$bsp_tools_available" = "1" ] && ! command -v bd >/dev/null 2>&1; then
   printf '%s\n' "beads not found — install bd to enable persistent task memory: https://github.com/DollarDill/beads-superpowers#prerequisites" >&2
 fi
 

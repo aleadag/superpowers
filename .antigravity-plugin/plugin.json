@@ -1,0 +1,29 @@
+{
+  "name": "beads-superpowers",
+  "displayName": "Beads Superpowers",
+  "version": "bsp-7.0.0",
+  "description": "Superpowers skills + Beads issue tracking. TDD, debugging, design, and persistent task memory.",
+  "logo": "assets/antigravity-logo.png",
+  "suggestedPrompts": [
+    "I've got an idea for something I'd like to build",
+    "Let's figure out why this broke"
+  ],
+  "category": "Developer Tools",
+  "keywords": [
+    "skills",
+    "tdd",
+    "debugging",
+    "collaboration",
+    "best-practices",
+    "workflows",
+    "beads",
+    "persistent-memory"
+  ],
+  "author": {
+    "name": "Dillon Frawley",
+    "email": "dillon@algocents.com"
+  },
+  "homepage": "https://algocents.com/beads-superpowers/",
+  "repository": "https://github.com/DollarDill/beads-superpowers",
+  "license": "MIT"
+}

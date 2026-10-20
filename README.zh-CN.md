@@ -42,11 +42,11 @@ bd init                               # 2. Bootstrap the Dolt database for this 
 
 1. **research-driven-development** — 当任务需要先行研究时：并行研究智能体展开调查，并在任何设计开始前产出一份经过验证的知识库文档。
 
-2. **brainstorming** — 通过一次一个问题的设计对话打磨想法，检查知识库中先前的决策，并以你批准的规格说明收尾——记录在 `bd` 中，从而在会话之间留存。
+2. **brainstorming** — 了解你想要什么及其原因，检索已有知识，再复述理解。小改动在对话中确认；项目则编写设计文档并进行构建者视角审查。进度记录在 `bd` 中。
 
 3. **stress-test** — 对已批准的规格说明逐个决策分支进行对抗性审问（每次规格评审时都会提供），让缺陷在规划前暴露。
 
-4. **writing-plans** — 将规格说明转化为带有确切文件、代码和验证步骤的小任务。每项任务都成为一个 `bd` bead。
+4. **writing-plans** — 将规格说明转化为明确文件、接口、测试断言和验证步骤的小任务，而非提前写出完整实现。每项任务都成为一个 `bd` bead。
 
 5. **stress-test**（再次） — 对计划本身进行同样的对抗性审查：任务边界、并行安全性、失败模式。
 
@@ -77,6 +77,7 @@ bd init                               # 2. Bootstrap the Dolt database for this 
 | 技能 | 作用 |
 |------|------|
 | `systematic-debugging` | 在提出任何修复方案前进行 4 阶段根因分析 |
+| `diagnosing-superpowers` | 依据会话记录解释技能流程为何失败，并可准备脱敏的 bug 报告 |
 | `verification-before-completion` | 主张之前先有证据——除非有命令证明，否则任务不算"完成" |
 
 ### 设计与规划
@@ -232,7 +233,7 @@ copilot plugin update beads-superpowers
 agy plugin install https://github.com/DollarDill/beads-superpowers
 ```
 
-注意：复用 Claude 插件清单——与上游验证的机制相同。
+使用原生 Antigravity Marketplace 清单。Antigravity 通过技能描述发现并加载技能，没有会话启动 hook。支持仍为尽力而为：其验证器警告 SDD 和 write-documentation 超出 24,000 字节的技能正文上限。
 
 ### Factory Droid
 

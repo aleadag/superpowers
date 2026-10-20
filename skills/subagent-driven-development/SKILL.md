@@ -14,21 +14,21 @@ Execute plan by dispatching a fresh implementer subagent per task, a task review
 **Narration:** between tool calls, narrate at most one short line — the
 ledger and the tool results carry the record.
 
-**Continuous execution:** Do not pause to check in with your human partner between tasks. Execute all tasks from the plan without stopping. The only reasons to stop are the four named below, or all tasks complete. "Should I continue?" prompts and progress summaries waste their time — they asked you to execute the plan, so execute it.
+**Continuous execution:** Do not pause to check in with your human partner between tasks. Execute all tasks from the plan without stopping. Stop for the conditions below, a tripped review breaker, or when all tasks complete. "Should I continue?" prompts and progress summaries waste their time — they asked you to execute the plan, so execute it.
 
 **Rulings, not stalls.** A running plan does not wait on a human. Conflicts,
-ambiguities, plan defects, a cap you would have asked to exceed — decide
-them. The spec is the binding authority, the plan is its argument, and your
+ambiguities, and routine implementation choices — decide them within the
+approved spec. Review caps do not authorize parking unresolved findings. The spec is the binding authority, the plan is its argument, and your
 judgment settles what neither answers. Record every decision in the ledger as
 `Ruling: <what you decided> — <why> — <what it costs if wrong>`, and keep
 going. A wrong ruling costs rework your human partner can see and undo; a
 session parked on a question costs their whole day and buys nothing.
 
-Four things stop you, and only these: an irreversible or destructive
-operation; a security-sensitive action; a side effect outside this worktree
-that norms say you ask about first (a merge, a push to a shared branch, a
-publish); and a plan so broken that every path forward is a guess. For those,
-stop and ask.
+Stop and ask before an irreversible or destructive operation, a
+security-sensitive action, a side effect outside this worktree that requires
+consent (a merge, shared-branch push, or publish), a plan so broken that every
+path forward is a guess, or unresolved findings at a task/final-review cap.
+The breaker procedure preserves severity and keeps affected work blocked.
 
 ## When to Use
 
@@ -221,8 +221,8 @@ and fix-round diffs need it.
   review seat per task.
 - If an earlier task parked a finding in the area this task touches, carry
   a pointer to that ledger entry in the dispatch.
-- Record the implementer's agent identity from the dispatch result —
-  fix-loop rounds 1-3 resume this agent.
+- Record the implementer's agent identity for the audit trail. Fix rounds
+  dispatch fresh implementers; they never depend on resuming a live agent.
 - Never dispatch multiple implementation subagents in parallel (conflicts).
 
 Template: [implementer-prompt.md](implementer-prompt.md)
@@ -314,28 +314,24 @@ Before the loop starts, two routes leave it immediately:
   the plan mandates it, and do not dispatch a fix that contradicts the plan
   without a recorded ruling.
 Everything else enters the loop. A fix round is one fix dispatch plus one
-scoped re-review. Five rounds maximum per task:
+scoped re-review. Five rounds maximum per task. Before round 1, record
+`ROUND0_HEAD` — the implementer's final commit before any fix rounds — in
+the ledger. This is not `BASE`, which predates the implementation.
 
-**Rounds 1-3 — resume the original implementer.** Send it the open findings
-verbatim. Its context is intact: it knows the task, the code, and its own
-choices. If your harness cannot send another message to a live subagent,
-dispatch a fresh implementer carrying the brief path, the report-file path,
-and the findings — the report file is the persistent memory either way.
+**Rounds 1-3 — dispatch a fresh implementer.** Carry the brief path, the
+open findings verbatim, and only the latest report section (a separate
+file or extracted section, not the accumulated report history).
 
 **Rounds 4-5 — dispatch a fresh implementer on a more capable model** (per
-Model Selection), with the brief path, the report-file path, the open
-findings, and this framing: "A prior implementer attempted this task
-[N] times; you own it now. Read the report file for what was tried." A loop
-that survives three resumes usually means the implementer cannot see its
-own problem — fresh eyes and a capability bump in one move.
+Model Selection), with the same brief, latest report section, and findings.
+The full report stays on disk as the audit trail, not in every dispatch.
 
-**Every round, either way:** the implementer fixes, re-runs the tests
-covering the amended code, appends its fix report to the same report file,
-and returns the short contract. Before re-dispatching the reviewer, confirm
-the fix report contains the covering tests, the command run, and the
-output; dispatch the re-review once all three are present. Name the
-covering test files in the fix message — a one-line fix does not need the
-whole suite.
+**Every round:** the implementer fixes, runs covering tests AND the full
+project suite, appends the fix report to the report file, and returns the
+short contract. Before re-review, confirm the report contains the commands
+and their actual output. A re-review PASS requires both the reviewer's
+verdict and a green full suite — a scoped diff cannot reveal out-of-diff
+regressions.
 
 **The re-review is scoped.** Run `bash scripts/review-package PLAN_FILE FIX_BASE HEAD`
 where FIX_BASE is the head the previous review saw, and dispatch
@@ -353,38 +349,23 @@ Never fix findings yourself in the controller session — your context stays
 clean for coordination, and controller fixes skip review.
 
 **The breaker.** When round 5's re-review still leaves findings open, stop
-dispatching. Adjudicate each open finding yourself — you hold the plan and
-the cross-task context the reviewer lacks:
-
-- **The reviewer is wrong, or the point is contestable:** park it —
-  `Task <N>: parked — <finding> — Ruling: <why the code stands>`. The final
-  review sees both sides.
-- **Real, but nothing downstream builds on it:** park it the same way, with
-  a ruling that says it's real and deferred.
-- **Real and load-bearing** — a later task builds on it, or it reveals a
-  plan defect: rule on the smallest change that unblocks the dependent work,
-  ledger it as `Task <N>: Ruling: <finding> — <what you decided and why>`,
-  and carry it into the next task's dispatch. Parking a structural failure
-  silently lets every dependent task build on it. Stop only when the defect
-  leaves every path forward a guess.
-
-Adjudicate only at the cap. Adjudicating earlier to end a loop is
-pre-judging with a different name. Every adjudication is a ledger entry —
-a silent discard is forbidden.
+and follow [references/breaker-trip.md](references/breaker-trip.md): file
+every unresolved finding with its original severity, block the task, hold
+its branch unmerged, and surface the choices to the user. The controller
+does not park or downgrade findings to make the task pass. Security
+findings block the epic and are never parkable. The user decides whether
+to resolve the findings or discard the fix rounds back to `ROUND0_HEAD`;
+never reset to the pre-implementation `BASE` instead.
 
 ### 5. Complete the task
 
-When the review comes back clean — or every open finding is parked with a
-ruling at the cap — append the completion line to the ledger in the same
-message as your other bookkeeping:
+When both review verdicts pass and the full suite is green, append:
 
 - `Task <N>: complete (commits <base7>..<head7>, review clean)`
-- `Task <N>: complete (commits <base7>..<head7>, <K> parked)` after a
-  tripped breaker
 
-Then `bd close <task-id> --reason "Completed"` and move on. Never move to the next task while
-the review has open Critical/Important issues that are neither fixed nor
-parked-with-ruling at the cap.
+Then `bd close <task-id> --reason "Completed: <review and test evidence>"`
+and move on. A tripped breaker leaves the task blocked until the user
+resolves its disposition; it is not an autonomous completion path.
 
 ## Final Review
 
@@ -396,8 +377,8 @@ one file instead of re-deriving the branch diff with git commands. Dispatch
 on the most capable available model (see Model Selection), using
 beads-superpowers:requesting-code-review's
 [code-reviewer.md](../requesting-code-review/code-reviewer.md). Point it at
-the ledger's deferred-minor and parked lines so it can triage which must be
-fixed before merge.
+the ledger's deferred-minor lines and any user-decided dispositions so it
+can triage which must be fixed before merge.
 
 If the final whole-branch review returns findings, dispatch ONE fix subagent
 with the complete findings list — not one fixer per finding.
@@ -406,16 +387,17 @@ session's final-review fix wave cost more than all its tasks combined.
 Then run exactly one scoped re-review of the fix wave
 (`bash scripts/review-package PLAN_FILE FIX_BASE HEAD` over the fix range,
 [re-review-prompt.md](re-review-prompt.md)).
-Adjudicate any residual findings as in the task loop's breaker: park with
-rulings, or rule on the load-bearing ones and ledger what you decided. Only
-the four classes above stop you here. There is no second fix wave —
-residual load-bearing findings surface to your human partner when
-finishing-a-development-branch presents the options.
+Run the full project suite after the fix wave. Re-review PASS requires both
+the reviewer's verdict and a green full suite. There is no autonomous second
+fix wave: if findings remain, follow [references/breaker-trip.md](references/breaker-trip.md).
+File them without downgrading severity, block the affected work, hold it
+unmerged, and surface the disposition to the user before finishing. Security
+findings block the epic and are never parkable.
 
 ## Finish
 
 Before you delete anything, collect every ledger line containing `Ruling:` —
-preflight rulings, parked findings, breaker adjudications, all of them — into
+preflight rulings and user-decided finding dispositions, all of them — into
 your final message under "Rulings I made", in the order you made them, each
 with what it costs if wrong. The list is exhaustive: if the ledger holds a
 ruling, the list holds it. That list is the only place the decisions you
@@ -444,6 +426,8 @@ See [references/rationalizations.md](references/rationalizations.md).
 ## Red Flags
 
 Every parallel subagent MUST have its own `bd worktree`. Never skip the task review, and never accept a report missing either verdict. A security regression is NEVER acceptable.
+
+**Never** substitute Claude's `isolation: "worktree"` parameter for `bd worktree` — it bypasses beads DB sharing.
 
 ## Example Workflow
 

@@ -14,6 +14,7 @@ FILES=(
   .codex-plugin/plugin.json  .codex-plugin/marketplace.json
   .cursor-plugin/plugin.json
   .kimi-plugin/plugin.json
+  .antigravity-plugin/plugin.json assets/antigravity-logo.png
   gemini-extension.json GEMINI.md
   .agents/plugins/marketplace.json
   hooks/hooks-cursor.json hooks/run-hook.cmd
@@ -64,5 +65,13 @@ expect_fail "M3 .agents marketplace given a version"
 # M4 — .pi extension loses its export default -> structural grep.
 stage; sed -i 's/export default //' "$FIX/.pi/extensions/superpowers.ts"
 expect_fail "M4 .pi missing export default"
+
+# M5-M7 — native Antigravity identity, version, and logo resolution.
+stage; jq_set "$FIX/.antigravity-plugin/plugin.json" '.version="9.9.9"'
+expect_fail "M5 antigravity version drift"
+stage; jq_set "$FIX/.antigravity-plugin/plugin.json" '.name="superpowers"'
+expect_fail "M6 antigravity upstream plugin name"
+stage; rm -f "$FIX/assets/antigravity-logo.png"
+expect_fail "M7 antigravity missing logo"
 
 exit $fails

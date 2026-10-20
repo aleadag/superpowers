@@ -15,6 +15,8 @@ hooks:
 
 manifests:
     bash tests/manifests/test-manifest-validation.sh
+    bash tests/antigravity/test-plugin-manifest.sh
+    bash tests/antigravity/test-logo.sh
 
 contracts:
     bash scripts/run-contracts.sh

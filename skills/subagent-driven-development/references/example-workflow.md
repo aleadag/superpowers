@@ -42,23 +42,31 @@ Task reviewer: Spec ❌:
   - Missing: Progress reporting (spec says "report every 100 items")
   Issues (Important): Magic number (100)
 
-[Fix round 1: resume the implementer with both findings]
+[Record ROUND0_HEAD before fixes]
+[Fix round 1: dispatch a fresh implementer with the brief, latest report section, and both findings]
 Implementer: Added progress reporting, extracted PROGRESS_INTERVAL constant.
-  Re-ran test/recovery.test.js — 10/10 passing. Fix report appended.
+  Re-ran test/recovery.test.js — 10/10 passing.
+  Ran the full project suite — 42/42 passing. Fix report appended.
 
 [Run review-package PLAN_FILE FIX_BASE HEAD; dispatch scoped re-review]
 Re-reviewer: Missing progress reporting — ADDRESSED (src/recovery.js:41).
   Magic number — ADDRESSED (src/recovery.js:7). New breakage: none.
-  Verdict: all findings addressed.
+  Verdict: all findings addressed. Full-suite evidence verified green.
 
 [Ledger: Task 2: fix round 1/5 (2 addressed, 0 open; commits d4e5f6a..b7c8d9e)]
 [Ledger: Task 2: complete (commits d4e5f6a..b7c8d9e, review clean)]
 
 ...
 
+[If round 5 instead left findings open: file each with its original severity,
+ block the task, hold its branch unmerged, and surface resolve/discard-fix-rounds
+ choices to the user. Security findings block the epic; no autonomous parking.]
+
 [After all tasks]
 [Run review-package PLAN_FILE MERGE_BASE HEAD; dispatch final code-reviewer, most capable model]
 Final reviewer: All requirements met. Deferred minors triaged: none block merge.
+[Full project suite green. If a final fix wave leaves findings open, block and
+ surface them to the user under the same breaker policy rather than finishing.]
 
 [Delete this plan's workspace — the record now lives in git]
 

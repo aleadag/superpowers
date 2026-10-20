@@ -37,7 +37,7 @@ jq_ok() {  # file, filter, label
 }
 # JSON validity: plugin manifests + all three marketplace manifests
 for f in .claude-plugin/plugin.json .codex-plugin/plugin.json .cursor-plugin/plugin.json \
-         hooks/hooks-cursor.json .kimi-plugin/plugin.json gemini-extension.json \
+         hooks/hooks-cursor.json .kimi-plugin/plugin.json .antigravity-plugin/plugin.json gemini-extension.json \
          .claude-plugin/marketplace.json .codex-plugin/marketplace.json .agents/plugins/marketplace.json; do
   if [ -f "$f" ]; then
     valid_json "$f"
@@ -47,6 +47,8 @@ for f in .claude-plugin/plugin.json .codex-plugin/plugin.json .cursor-plugin/plu
 done
 ver_match .cursor-plugin/plugin.json '.version'
 ver_match .kimi-plugin/plugin.json '.version'
+ver_match .antigravity-plugin/plugin.json '.version'
+jq_ok .antigravity-plugin/plugin.json '.name=="beads-superpowers"' "antigravity plugin name"
 ver_match gemini-extension.json '.version'
 jq -e '.skills=="./skills/"' .cursor-plugin/plugin.json >/dev/null && echo "cursor skills OK" || fail=1
 jq -e '.sessionStart.skill=="using-superpowers"' .kimi-plugin/plugin.json >/dev/null && echo "kimi sessionStart OK" || fail=1
@@ -77,6 +79,8 @@ need() {
     echo "MISSING REF: $1"; fail=1
   fi
 }
+# Native Antigravity manifest must resolve its Marketplace logo.
+need "$(jq -r .logo .antigravity-plugin/plugin.json)"
 # .kimi-plugin sessionStart.skill must map to a real skill dir
 need "skills/$(jq -r .sessionStart.skill .kimi-plugin/plugin.json)/SKILL.md"
 # hooks-cursor.json command target (run-hook.cmd) must exist

@@ -24,7 +24,7 @@ assert_no_file "$SANDBOX/.$HARNESS"
 
 if [ "$MANIFEST" != "-" ]; then
   assert_file "$REPO_ROOT/$MANIFEST"
-  PKG_V=$(grep -m1 '"version"' "$REPO_ROOT/package.json" | sed -E 's/.*"([0-9][^"]*)".*/\1/')
+  PKG_V=$(python3 -c 'import json, sys; print(json.load(sys.stdin)["version"])' < "$REPO_ROOT/package.json")
   assert_json "$REPO_ROOT/$MANIFEST" "d.get('version') == '$PKG_V'"
 fi
 

@@ -74,4 +74,27 @@ rc=0; "$RP" "$base_sha" "$head_sha" >/dev/null 2>&1 || rc=$?
 found=$(find "$dir" -maxdepth 1 -name 'review-*.diff' | grep -c '' || true)
 [ "$found" -eq 1 ] || { echo "FAIL: review diff not in plan workspace (found $found)"; exit 1; }
 
+# 10. a repository-owned ignore policy must survive workspace creation
+ignore=$'*\n!.gitignore\n!*/\n!*/progress.md'
+printf '%s\n' "$ignore" > "$base/.gitignore"
+"$WS" plans/alpha-plan.md >/dev/null
+[ "$(cat "$base/.gitignore")" = "$ignore" ] \
+  || { echo "FAIL: existing .gitignore overwritten"; exit 1; }
+
+# 11. normalize a differently-spelled git root before recording plan markers
+# (Git Bash returns C:/... where pwd uses /c/...; a symlink reproduces the
+# mismatch on Unix without requiring a Windows machine).
+real_git=$(command -v git)
+ln -s "$TMP" "$TMP/../$(basename "$TMP")-alias"
+alias_root="$TMP/../$(basename "$TMP")-alias"
+trap 'rm -f "$alias_root"; rm -rf "$TMP"' EXIT
+mkdir -p "$TMP/bin"
+printf '#!%s\nif [ "$1" = rev-parse ] && [ "$2" = --show-toplevel ]; then\n  printf "%%s\\n" "%s"\nelse\n  exec "%s" "$@"\nfi\n' \
+  "$(command -v bash)" "$alias_root" "$real_git" > "$TMP/bin/git"
+chmod +x "$TMP/bin/git"
+printf '### Task 1: Gamma\n' > plans/gamma-plan.md
+gamma=$(PATH="$TMP/bin:$PATH" "$WS" plans/gamma-plan.md)
+[ "$(cat "$gamma/plan-path")" = 'plans/gamma-plan.md' ] \
+  || { echo "FAIL: plan marker is not repo-relative after root normalization"; exit 1; }
+
 echo "PASS: sdd plan-scoped workspace + callers"

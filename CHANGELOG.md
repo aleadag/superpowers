@@ -4,10 +4,27 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
-> **Forked from:** [obra/superpowers](https://github.com/obra/superpowers) v6.4.1
+> **Forked from:** [obra/superpowers](https://github.com/obra/superpowers) v7.0.0
 > **Beads integration based on:** [gastownhall/beads](https://github.com/gastownhall/beads) v1.1.2
 
 ## [Unreleased]
+
+## [bsp-7.0.0] - 2026-10-20
+
+### Changed
+
+- Merged Superpowers v7.0.0, including v6.4.2. Brainstorming now starts with intent-first questions and playback, sizes the work after understanding it, and runs a builder check on written designs. Beads retrieval, session tracking, stress-test gates, and the production/security safeguards remain in the active workflow.
+- Plans now specify interfaces, test assertions, and verification commands rather than writing out implementation bodies.
+- Antigravity now has a native Marketplace manifest, logo, and validation tests. It bootstraps through skill discovery, not a session-start hook. Support remains best-effort; its validator warns that SDD and write-documentation exceed its skill-body size limit.
+
+### Fixed
+
+- Session-start bootstrap and its wrapper work with an empty startup PATH. Beads composition resumes when its external tools are available. Windows hook discovery skips WSL launchers and current-directory executables and preserves hook exit codes.
+- Brainstorm screens preserve literal replacement tokens such as `$&` and `$'`.
+- SDD workspaces preserve existing ignore policies and normalize roots before recording repo-relative plan markers. Native execution records successful tests that print nothing.
+- Hermes registers skill descriptions; code-review examples avoid skill-argument substitution; debugging examples report whether a secret is set without printing its value.
+- Version audits no longer mistake part of an IP address for a version pin, and install-shape tests parse `bsp-` versions correctly.
+- Restored fork SDD safeguards lost from the active workflow in the previous merge: fresh fix-round implementers, latest-report context, a full-suite gate, and user-decided breaker disposition. The existing guard-the-guards suite now reaches the line-budget boundary regardless of the skill's current length.
 
 ## [bsp-6.4.1] - 2026-09-22
 

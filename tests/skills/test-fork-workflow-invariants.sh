@@ -122,9 +122,38 @@ else
   bad "missing maintainer-only merge playbook ($PLAYBOOK)"
 fi
 
+# Absence-of-defect pins: the previous merge put upstream fix-round policy
+# back in the live path while the fork's breaker rules survived only in refs.
+has_retired_sdd_policy() {
+  grep -qE 'resume the original implementer|Adjudicate each open finding|a one-line fix does not need the|R≤3 resume implementer|Fix round 1: resume the implementer|park with rulings|only reasons to stop are the four|Four things stop you, and only these|Only the four classes above stop you here' "$1"
+}
+SDD_SURFACES=(SKILL.md references/process-flow.md references/example-workflow.md)
+for surface in "${SDD_SURFACES[@]}"; do
+  if has_retired_sdd_policy "$ROOT/skills/subagent-driven-development/$surface"; then
+    bad "retired SDD policy in live path: $surface"
+  else
+    pass "retired SDD policy absent: $surface"
+  fi
+done
+
 # --- mutations (must be RED) — prove the pins catch the overlay failure mode ---
 TMP=$(mktemp -d)
 trap 'rm -rf "$TMP"' EXIT
+
+# Reintroducing any retired live SDD path must be caught, including refs.
+for surface in "${SDD_SURFACES[@]}"; do
+  cp -f "$ROOT/skills/subagent-driven-development/$surface" "$TMP/sdd.md"
+  case "$surface" in
+    SKILL.md) printf '\nAdjudicate each open finding yourself\n' >> "$TMP/sdd.md" ;;
+    references/process-flow.md) printf '\nR≤3 resume implementer\n' >> "$TMP/sdd.md" ;;
+    *) printf '\nFix round 1: resume the implementer\n' >> "$TMP/sdd.md" ;;
+  esac
+  if has_retired_sdd_policy "$TMP/sdd.md"; then
+    pass "mutation: retired SDD policy in $surface is RED"
+  else
+    bad "mutation: retired SDD policy in $surface still passed"
+  fi
+done
 
 # Gate JSON dropped (phrase may still appear in Integration).
 awk '

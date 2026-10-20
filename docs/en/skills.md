@@ -136,7 +136,7 @@ The agent must run verification commands and show actual output - not assert fro
 
 **Trigger:** Before any creative work - features, components, or behavior changes.
 
-Socratic design exploration. Asks structured questions to surface requirements, constraints, and design alternatives. Produces a committed design spec. Ends by invoking `writing-plans`, not by jumping to code.
+Draws out what you want and why through open questions, then plays back its understanding for correction. Small changes get agreed in chat; projects get a written design and a builder check before the spec-review gate. Beads tracks progress and prior knowledge; the gate still offers `stress-test` before `writing-plans`.
 
 ### stress-test
 
@@ -148,7 +148,7 @@ Interrogates every branch of the decision tree, proposing a recommended answer f
 
 **Trigger:** When you have a spec or requirements for a multi-step task.
 
-Breaks a design into bite-sized tasks (2-5 minutes each) with exact file paths, code, and verification steps. Every task becomes a bead with dependency ordering.
+Breaks a design into independently testable tasks with exact file paths, interfaces, test assertions, and verification commands. Plans record decisions rather than full implementation bodies. Every task becomes a bead with dependency ordering.
 
 ### subagent-driven-development
 

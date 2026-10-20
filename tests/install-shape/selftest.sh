@@ -457,7 +457,11 @@ elif ! cp -rf "$REPO_ROOT/skills/subagent-driven-development" "$SB18/skills/suba
 elif ! cp -f "$REPO_ROOT/tests/skills/test-sdd-structure.sh" "$SB18/tests/skills/test-sdd-structure.sh"; then
   echo "SELFTEST FAIL: mutation-18 setup copy guard script failed (rig broken, not a caught mutation)"; rc=1
 else
-  for _ in $(seq 1 60); do echo >> "$SB18/skills/subagent-driven-development/SKILL.md"; done
+  lines=$(wc -l < "$SB18/skills/subagent-driven-development/SKILL.md")
+  while [ "$lines" -le 500 ]; do
+    printf '\n' >> "$SB18/skills/subagent-driven-development/SKILL.md"
+    lines=$((lines + 1))
+  done
   expect_red "sdd structure: SKILL.md over the 500-line budget" \
     bash "$SB18/tests/skills/test-sdd-structure.sh"
   cp -f "$REPO_ROOT/skills/subagent-driven-development/SKILL.md" \
